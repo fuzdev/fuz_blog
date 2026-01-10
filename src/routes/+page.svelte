@@ -16,7 +16,7 @@
 	<section class="box">
 		<header class="pt_sm">
 			<Svg data={logo_fuz_blog} size="var(--icon_size_xl3)" />
-			<h1 class="mt_xl2 text_align_center">fuz_blog</h1>
+			<h1 class="mt_xl2 text-align:center">fuz_blog</h1>
 		</header>
 		<blockquote>blog software from scratch with SvelteKit</blockquote>
 	</section>
