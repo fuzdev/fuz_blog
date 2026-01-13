@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type {Snippet} from 'svelte';
 
-	// TODO maybe move to Fuz UI
+	// TODO maybe move to fuz_ui
 
 	const {
 		slug,
