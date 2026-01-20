@@ -1,5 +1,11 @@
 # @fuzdev/fuz_blog
 
+## 0.22.0
+
+### Minor Changes
+
+- upgrade deps ([#15](https://github.com/fuzdev/fuz_blog/pull/15))
+
 ## 0.21.0
 
 ### Minor Changes
