@@ -12,11 +12,11 @@
 	/* eslint-disable @typescript-eslint/no-unnecessary-template-expression */
 </script>
 
-<main class="mx_auto p_lg width_upto_md">
+<main class="mx_auto p_lg width_atmost_md">
 	<section class="box">
 		<header class="pt_sm">
 			<Svg data={logo_fuz_blog} size="var(--icon_size_xl3)" />
-			<h1 class="mt_xl2 text_align_center">fuz_blog</h1>
+			<h1 class="mt_xl2 text-align:center">fuz_blog</h1>
 		</header>
 		<blockquote>blog software from scratch with SvelteKit</blockquote>
 	</section>

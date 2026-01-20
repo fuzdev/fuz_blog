@@ -8,15 +8,15 @@
 	const library = library_context.get();
 </script>
 
-<main class="mx_auto p_lg width_upto_md">
+<main class="mx_auto p_lg width_atmost_md">
 	<section class="box">
 		<header class="box">
 			<h1 class="mt_xl2">fuz_blog</h1>
 		</header>
 		<Breadcrumb>{library.package_json.glyph}</Breadcrumb>
 	</section>
-	<section class="box width_100 mb_lg">
-		<div class="panel p_lg width_upto_md">
+	<section class="box width:100% mb_lg">
+		<div class="panel p_lg width_atmost_md">
 			<LibraryDetail {library} />
 		</div>
 	</section>
