@@ -34,7 +34,7 @@
     "@changesets/changelog-git": "^0.2.1",
     "@fuzdev/fuz_code": "^0.40.0",
     "@fuzdev/fuz_css": "^0.44.1",
-    "@fuzdev/fuz_mastodon": "^0.37.0",
+    "@fuzdev/fuz_mastodon": "^0.38.0",
     "@fuzdev/fuz_ui": "^0.179.0",
     "@fuzdev/fuz_util": "^0.45.3",
     "@ryanatkn/eslint-config": "^0.9.0",
