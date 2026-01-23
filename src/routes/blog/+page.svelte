@@ -33,14 +33,14 @@
 		padding: var(--space_xl3) 0;
 	}
 	ol {
-		background-color: var(--fg_1);
+		background-color: var(--shade_10);
 		padding: var(--space_sm) var(--space_sm) var(--space_sm) var(--space_xl4);
 		box-shadow: var(--shadow_inset_xs) var(--shadow_color_1);
 	}
 	.blog_card {
 		font-size: var(--font_size_lg);
 		max-width: var(--distance_sm);
-		background-color: var(--bg);
+		background-color: var(--shade_00);
 		border-width: var(--border_width);
 		border-style: solid;
 		border-color: transparent;
