@@ -1,0 +1,661 @@
+{
+	"name": "@fuzdev/fuz_blog",
+	"repo_name": "fuz_blog",
+	"repo_url": "https://github.com/fuzdev/fuz_blog",
+	"owner_name": "fuzdev",
+	"homepage_url": "https://blog.fuz.dev/",
+	"logo_url": "https://blog.fuz.dev/logo.svg",
+	"logo_alt": "a friendly yellow spider facing you",
+	"npm_url": "https://www.npmjs.com/package/@fuzdev/fuz_blog",
+	"changelog_url": "https://github.com/fuzdev/fuz_blog/blob/main/CHANGELOG.md",
+	"published": true,
+	"package_json": {
+		"name": "@fuzdev/fuz_blog",
+		"version": "0.22.0",
+		"description": "blog software from scratch with SvelteKit",
+		"glyph": "🖊️",
+		"logo": "logo.svg",
+		"logo_alt": "a friendly yellow spider facing you",
+		"homepage": "https://blog.fuz.dev/",
+		"repository": "https://github.com/fuzdev/fuz_blog",
+		"scripts": {
+			"start": "gro dev",
+			"dev": "gro dev",
+			"build": "gro build",
+			"check": "gro check",
+			"test": "gro test",
+			"preview": "vite preview",
+			"deploy": "gro deploy"
+		},
+		"type": "module",
+		"engines": {
+			"node": ">=22.15"
+		},
+		"peerDependencies": {
+			"@fuzdev/fuz_css": ">=0.44.1",
+			"@fuzdev/fuz_mastodon": ">=0.38.0",
+			"@fuzdev/fuz_ui": ">=0.179.0",
+			"@fuzdev/fuz_util": ">=0.45.3",
+			"@ryanatkn/gro": ">=0.186.0",
+			"@sveltejs/kit": "^2",
+			"date-fns": "^4",
+			"svelte": "^5"
+		},
+		"devDependencies": {
+			"@changesets/changelog-git": "^0.2.1",
+			"@fuzdev/fuz_code": "^0.41.0",
+			"@fuzdev/fuz_css": "^0.45.0",
+			"@fuzdev/fuz_mastodon": "^0.39.0",
+			"@fuzdev/fuz_ui": "^0.180.0",
+			"@fuzdev/fuz_util": "^0.48.2",
+			"@ryanatkn/eslint-config": "^0.9.0",
+			"@ryanatkn/gro": "^0.189.3",
+			"@sveltejs/adapter-static": "^3.0.10",
+			"@sveltejs/kit": "^2.50.1",
+			"@sveltejs/package": "^2.5.7",
+			"@sveltejs/vite-plugin-svelte": "^6.2.4",
+			"@types/node": "^24.10.1",
+			"@webref/css": "^8.2.0",
+			"date-fns": "^4.1.0",
+			"eslint": "^9.39.1",
+			"eslint-plugin-svelte": "^3.13.1",
+			"prettier": "^3.7.4",
+			"prettier-plugin-svelte": "^3.4.1",
+			"svelte": "^5.48.5",
+			"svelte-check": "^4.3.5",
+			"tslib": "^2.8.1",
+			"typescript": "^5.9.3",
+			"typescript-eslint": "^8.48.1",
+			"vitest": "^4.0.15"
+		},
+		"prettier": {
+			"plugins": [
+				"prettier-plugin-svelte"
+			],
+			"useTabs": true,
+			"printWidth": 100,
+			"singleQuote": true,
+			"bracketSpacing": false,
+			"overrides": [
+				{
+					"files": "package.json",
+					"options": {
+						"useTabs": false
+					}
+				}
+			]
+		},
+		"sideEffects": [
+			"**/*.css"
+		],
+		"files": [
+			"dist"
+		],
+		"exports": {
+			"./package.json": "./package.json",
+			"./*.js": {
+				"types": "./dist/*.d.ts",
+				"default": "./dist/*.js"
+			},
+			"./*.ts": {
+				"types": "./dist/*.d.ts",
+				"default": "./dist/*.js"
+			},
+			"./*.svelte": {
+				"types": "./dist/*.svelte.d.ts",
+				"svelte": "./dist/*.svelte",
+				"default": "./dist/*.svelte"
+			}
+		}
+	},
+	"source_json": {
+		"name": "@fuzdev/fuz_blog",
+		"version": "0.22.0",
+		"modules": [
+			{
+				"path": "blog_helpers.ts",
+				"declarations": [
+					{
+						"name": "resolve_blog_post_item",
+						"kind": "function",
+						"source_line": 9,
+						"type_signature": "(blog_post_id: BlogPostId, blog_url: string, post: BlogPostData): BlogPostItem",
+						"return_type": "BlogPostItem",
+						"parameters": [
+							{
+								"name": "blog_post_id",
+								"type": "BlogPostId"
+							},
+							{
+								"name": "blog_url",
+								"type": "string"
+							},
+							{
+								"name": "post",
+								"type": "BlogPostData"
+							}
+						]
+					},
+					{
+						"name": "collect_blog_post_ids",
+						"kind": "function",
+						"doc_comment": "Returns an array of all of the sequential blog post ids starting with 1.\nWhen it fails to find the next id, the sequence ends.",
+						"source_line": 33,
+						"type_signature": "(blog_dir: string): BlogPostId[]",
+						"return_type": "BlogPostId[]",
+						"parameters": [
+							{
+								"name": "blog_dir",
+								"type": "string"
+							}
+						]
+					},
+					{
+						"name": "load_blog_post_modules",
+						"kind": "function",
+						"source_line": 48,
+						"type_signature": "(blog_dir: string, blog_post_ids: BlogPostId[]): Promise<BlogPostModule[]>",
+						"return_type": "Promise<BlogPostModule[]>",
+						"parameters": [
+							{
+								"name": "blog_dir",
+								"type": "string"
+							},
+							{
+								"name": "blog_post_ids",
+								"type": "BlogPostId[]"
+							}
+						]
+					},
+					{
+						"name": "to_next_blog_post_id",
+						"kind": "function",
+						"source_line": 54,
+						"type_signature": "(blog_post_ids: BlogPostId[]): BlogPostId",
+						"return_type": "BlogPostId",
+						"parameters": [
+							{
+								"name": "blog_post_ids",
+								"type": "BlogPostId[]"
+							}
+						]
+					},
+					{
+						"name": "to_blog_post_path",
+						"kind": "function",
+						"source_line": 59,
+						"type_signature": "(blog_dir: string, blog_post_id: BlogPostId): string",
+						"return_type": "string",
+						"parameters": [
+							{
+								"name": "blog_dir",
+								"type": "string"
+							},
+							{
+								"name": "blog_post_id",
+								"type": "BlogPostId"
+							}
+						]
+					}
+				],
+				"dependents": [
+					"blog.gen.ts",
+					"post.task.ts"
+				]
+			},
+			{
+				"path": "blog.gen.ts",
+				"declarations": [],
+				"dependencies": [
+					"blog_helpers.ts",
+					"feed.ts"
+				]
+			},
+			{
+				"path": "blog.ts",
+				"declarations": [
+					{
+						"name": "BlogFeedData",
+						"kind": "type",
+						"source_line": 11,
+						"type_signature": "BlogFeedData"
+					},
+					{
+						"name": "BlogFeed",
+						"kind": "type",
+						"source_line": 13,
+						"type_signature": "BlogFeed",
+						"extends": [
+							"Feed"
+						],
+						"properties": [
+							{
+								"name": "items",
+								"kind": "variable",
+								"type_signature": "Array<BlogPostItem>"
+							}
+						]
+					},
+					{
+						"name": "BlogPostData",
+						"kind": "type",
+						"doc_comment": "The author-defined data for each post.",
+						"source_line": 20,
+						"type_signature": "BlogPostData",
+						"properties": [
+							{
+								"name": "title",
+								"kind": "variable",
+								"type_signature": "string"
+							},
+							{
+								"name": "slug",
+								"kind": "variable",
+								"type_signature": "string"
+							},
+							{
+								"name": "date_published",
+								"kind": "variable",
+								"type_signature": "string"
+							},
+							{
+								"name": "date_modified",
+								"kind": "variable",
+								"type_signature": "string"
+							},
+							{
+								"name": "summary",
+								"kind": "variable",
+								"type_signature": "string"
+							},
+							{
+								"name": "tags",
+								"kind": "variable",
+								"type_signature": "Array<string>"
+							},
+							{
+								"name": "comments",
+								"kind": "variable",
+								"type_signature": "BlogComments"
+							}
+						]
+					},
+					{
+						"name": "BlogComments",
+						"kind": "type",
+						"source_line": 31,
+						"type_signature": "MastodonBlogComments"
+					},
+					{
+						"name": "MastodonBlogComments",
+						"kind": "type",
+						"source_line": 33,
+						"type_signature": "MastodonBlogComments",
+						"properties": [
+							{
+								"name": "url",
+								"kind": "variable",
+								"type_signature": "string"
+							},
+							{
+								"name": "type",
+								"kind": "variable",
+								"type_signature": "'mastodon'"
+							}
+						]
+					},
+					{
+						"name": "BlogModule",
+						"kind": "type",
+						"source_line": 38,
+						"type_signature": "BlogModule",
+						"properties": [
+							{
+								"name": "blog",
+								"kind": "variable",
+								"type_signature": "BlogFeedData"
+							}
+						]
+					},
+					{
+						"name": "BlogPostModule",
+						"kind": "type",
+						"source_line": 42,
+						"type_signature": "BlogPostModule",
+						"properties": [
+							{
+								"name": "post",
+								"kind": "variable",
+								"type_signature": "BlogPostData"
+							},
+							{
+								"name": "default",
+								"kind": "variable",
+								"type_signature": "Component<any>"
+							}
+						]
+					},
+					{
+						"name": "BlogPostId",
+						"kind": "type",
+						"source_line": 47,
+						"type_signature": "BlogPostId"
+					},
+					{
+						"name": "BlogPostItem",
+						"kind": "type",
+						"source_line": 49,
+						"type_signature": "BlogPostItem",
+						"extends": [
+							"BlogPostData"
+						],
+						"properties": [
+							{
+								"name": "id",
+								"kind": "variable",
+								"type_signature": "string",
+								"doc_comment": "Blog post path with `blog_post_id`."
+							},
+							{
+								"name": "url",
+								"kind": "variable",
+								"type_signature": "string",
+								"doc_comment": "Blog post path with `slug`."
+							},
+							{
+								"name": "blog_post_id",
+								"kind": "variable",
+								"type_signature": "BlogPostId",
+								"doc_comment": "Incrementing 1-based integer."
+							},
+							{
+								"name": "tags",
+								"kind": "variable",
+								"type_signature": "Array<string>"
+							}
+						]
+					},
+					{
+						"name": "blog_feed_context",
+						"kind": "variable",
+						"source_line": 68,
+						"type_signature": "{ get: (error_message?: string | undefined) => BlogFeed; get_maybe: () => BlogFeed | undefined; set: (value: BlogFeed) => BlogFeed; }"
+					}
+				],
+				"dependents": [
+					"BlogPost.svelte"
+				]
+			},
+			{
+				"path": "BlogPost.svelte",
+				"declarations": [
+					{
+						"name": "BlogPost",
+						"kind": "component",
+						"props": [
+							{
+								"name": "post",
+								"type": "BlogPostData"
+							},
+							{
+								"name": "attrs",
+								"type": "SvelteHTMLElements['article'] | undefined",
+								"optional": true
+							},
+							{
+								"name": "footer",
+								"type": "Snippet",
+								"optional": true
+							},
+							{
+								"name": "separator",
+								"type": "Snippet",
+								"optional": true
+							},
+							{
+								"name": "children",
+								"type": "Snippet"
+							}
+						],
+						"source_line": 1
+					}
+				],
+				"dependencies": [
+					"BlogPostHeader.svelte",
+					"blog.ts"
+				]
+			},
+			{
+				"path": "BlogPostHeader.svelte",
+				"declarations": [
+					{
+						"name": "BlogPostHeader",
+						"kind": "component",
+						"props": [
+							{
+								"name": "item",
+								"type": "BlogPostItem"
+							}
+						],
+						"source_line": 1
+					}
+				],
+				"dependencies": [
+					"FeedItemDate.svelte"
+				],
+				"dependents": [
+					"BlogPost.svelte"
+				]
+			},
+			{
+				"path": "feed.ts",
+				"declarations": [
+					{
+						"name": "Feed",
+						"kind": "type",
+						"doc_comment": "This is designed to extend JSON Feed 1.1 with namespaced data for other specs like Atom.\nIt's still a work in progress, and I'll add features as I need them,\nand eventually this will be extracted to a standalone library.\nhttps://www.jsonfeed.org/version/1.1/",
+						"source_line": 14,
+						"type_signature": "Feed",
+						"properties": [
+							{
+								"name": "id",
+								"kind": "variable",
+								"type_signature": "string"
+							},
+							{
+								"name": "title",
+								"kind": "variable",
+								"type_signature": "string"
+							},
+							{
+								"name": "home_page_url",
+								"kind": "variable",
+								"type_signature": "string"
+							},
+							{
+								"name": "description",
+								"kind": "variable",
+								"type_signature": "string"
+							},
+							{
+								"name": "icon",
+								"kind": "variable",
+								"type_signature": "string"
+							},
+							{
+								"name": "favicon",
+								"kind": "variable",
+								"type_signature": "string"
+							},
+							{
+								"name": "author",
+								"kind": "variable",
+								"type_signature": "{\n\t\tname: string;\n\t\turl?: string;\n\t\temail?: string;\n\t}"
+							},
+							{
+								"name": "items",
+								"kind": "variable",
+								"type_signature": "Array<FeedItem>"
+							},
+							{
+								"name": "atom",
+								"kind": "variable",
+								"type_signature": "{\n\t\tfeed_url: string;\n\t}"
+							}
+						]
+					},
+					{
+						"name": "FeedItem",
+						"kind": "type",
+						"source_line": 42,
+						"type_signature": "FeedItem",
+						"properties": [
+							{
+								"name": "id",
+								"kind": "variable",
+								"type_signature": "string"
+							},
+							{
+								"name": "title",
+								"kind": "variable",
+								"type_signature": "string"
+							},
+							{
+								"name": "url",
+								"kind": "variable",
+								"type_signature": "string"
+							},
+							{
+								"name": "date_published",
+								"kind": "variable",
+								"type_signature": "string"
+							},
+							{
+								"name": "date_modified",
+								"kind": "variable",
+								"type_signature": "string"
+							},
+							{
+								"name": "summary",
+								"kind": "variable",
+								"type_signature": "string"
+							},
+							{
+								"name": "tags",
+								"kind": "variable",
+								"type_signature": "Array<string>"
+							}
+						]
+					},
+					{
+						"name": "create_atom_feed",
+						"kind": "function",
+						"source_line": 57,
+						"type_signature": "(data: Feed): string",
+						"return_type": "string",
+						"parameters": [
+							{
+								"name": "data",
+								"type": "Feed"
+							}
+						]
+					}
+				],
+				"dependents": [
+					"blog.gen.ts"
+				]
+			},
+			{
+				"path": "FeedItemDate.svelte",
+				"declarations": [
+					{
+						"name": "FeedItemDate",
+						"kind": "component",
+						"props": [
+							{
+								"name": "item",
+								"type": "FeedItem"
+							}
+						],
+						"source_line": 1
+					}
+				],
+				"dependencies": [
+					"util.ts"
+				],
+				"dependents": [
+					"BlogPostHeader.svelte"
+				]
+			},
+			{
+				"path": "HashLink.svelte",
+				"declarations": [
+					{
+						"name": "HashLink",
+						"kind": "component",
+						"props": [
+							{
+								"name": "slug",
+								"type": "string"
+							},
+							{
+								"name": "children",
+								"type": "Snippet"
+							}
+						],
+						"source_line": 1
+					}
+				]
+			},
+			{
+				"path": "post.task.ts",
+				"declarations": [],
+				"dependencies": [
+					"blog_helpers.ts"
+				]
+			},
+			{
+				"path": "update_post.task.ts",
+				"declarations": []
+			},
+			{
+				"path": "util.ts",
+				"declarations": [
+					{
+						"name": "format_date",
+						"kind": "function",
+						"source_line": 5,
+						"type_signature": "(date: string | number | Date): string",
+						"return_type": "string",
+						"parameters": [
+							{
+								"name": "date",
+								"type": "string | number | Date"
+							}
+						]
+					},
+					{
+						"name": "to_pathname",
+						"kind": "function",
+						"source_line": 8,
+						"type_signature": "(url: string, root: string): string",
+						"return_type": "string",
+						"parameters": [
+							{
+								"name": "url",
+								"type": "string"
+							},
+							{
+								"name": "root",
+								"type": "string"
+							}
+						]
+					}
+				],
+				"dependents": [
+					"FeedItemDate.svelte"
+				]
+			}
+		]
+	}
+}
