@@ -52,7 +52,11 @@
 		box-shadow: var(
 			--card_shadow,
 			var(--shadow_bottom_sm)
-				color-mix(in hsl, var(--shadow_color, var(--shadow_color_umbra)) var(--shadow_alpha_40), transparent)
+				color-mix(
+					in hsl,
+					var(--shadow_color, var(--shadow_color_umbra)) var(--shadow_alpha_40),
+					transparent
+				)
 		);
 	}
 	.date {
