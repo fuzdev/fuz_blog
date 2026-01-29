@@ -1,5 +1,11 @@
 # @fuzdev/fuz_blog
 
+## 0.23.0
+
+### Minor Changes
+
+- migrate to PascalCase for BlogPostN ([73270d6](https://github.com/fuzdev/fuz_blog/commit/73270d6))
+
 ## 0.22.0
 
 ### Minor Changes
