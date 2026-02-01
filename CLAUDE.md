@@ -100,19 +100,9 @@ human-readable URLs without path coupling.
 **BlogPostId**: Uses `Flavored<number, 'BlogPostId'>` for type-safe post IDs
 that remain compatible with plain numbers.
 
-**BlogPostData**: Author-defined metadata exported from each post's `<script module>`:
-
-```typescript
-export const post: BlogPostData = {
-  title: 'Hello fuz_blog',
-  slug: 'hello-fuz-blog',
-  date_published: '2024-07-10T16:04:49.688Z',
-  date_modified: '2024-07-15T18:27:36.477Z',
-  summary: 'fuz_blog is now a reusable library',
-  tags: ['blog software', 'sveltekit'],
-  comments: {url: 'https://fosstodon.org/@ryanatkn/...', type: 'mastodon'},
-};
-```
+**BlogPostData**: Author-defined metadata exported from each post's
+`<script module>`. Fields: `title`, `slug`, `date_published`, `date_modified`,
+`summary`, `tags?`, `comments?`.
 
 **BlogPostItem**: Extended version with computed fields (`id`, `url`,
 `blog_post_id`) generated during `gro gen`.
@@ -158,22 +148,8 @@ tasks:
 
 ### Svelte 5 patterns
 
-Components use Svelte 5 runes API:
-
-```svelte
-<script lang="ts">
-  import type {Snippet} from 'svelte';
-
-  interface Props {
-    post: BlogPostItem;
-    children: Snippet;
-    footer?: Snippet;    // optional footer content
-    separator?: Snippet; // optional separator before comments
-  }
-
-  const {post, children, footer, separator}: Props = $props();
-</script>
-```
+Components use Svelte 5 runes API with optional `Snippet` props (`footer`,
+`separator`) for customization. See `BlogPost.svelte` for the pattern.
 
 ### Context system
 
@@ -182,16 +158,7 @@ Uses the standardized context pattern from fuz_ui:
 - `blog_feed_context` - provides `BlogFeed` data throughout the app
 - `mastodon_cache_context` - (from fuz_mastodon) optional dev cache for comments
 
-Set in layout, consumed by components:
-
-```svelte
-<script>
-  import {blog_feed_context} from '@fuzdev/fuz_blog/blog.js';
-  import {feed} from './blog/feed.js';
-
-  blog_feed_context.set(feed);
-</script>
-```
+Set `blog_feed_context` in your root layout with the generated feed.
 
 ## Creating a blog post
 
@@ -206,18 +173,8 @@ and runs `gro gen` to update feed and routes.
 
 ## Using as a library
 
-Install and import components for your own blog:
-
-```svelte
-<script>
-  import BlogPost from '@fuzdev/fuz_blog/BlogPost.svelte';
-  import {post} from './+page.svelte';
-</script>
-
-<BlogPost {post}>
-  <!-- your content -->
-</BlogPost>
-```
+Import `BlogPost.svelte` and wrap your content, passing the `post` prop from
+your page's module exports.
 
 ## Development patterns
 
