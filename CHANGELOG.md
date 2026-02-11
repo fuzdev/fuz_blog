@@ -1,5 +1,11 @@
 # @fuzdev/fuz_blog
 
+## 0.24.0
+
+### Minor Changes
+
+- migrate to @fuzdev/gro from @ryanatkn/gro and upgrade peer deps ([db012a4](https://github.com/fuzdev/fuz_blog/commit/db012a4))
+
 ## 0.23.0
 
 ### Minor Changes
