@@ -1,6 +1,6 @@
-import type {Gen} from '@ryanatkn/gro/gen.js';
+import type {Gen} from '@fuzdev/gro/gen.js';
 import {join} from 'node:path';
-import {package_json_load} from '@ryanatkn/gro/package_json.js';
+import {package_json_load} from '@fuzdev/gro/package_json.js';
 
 import {create_atom_feed} from './feed.js';
 import {

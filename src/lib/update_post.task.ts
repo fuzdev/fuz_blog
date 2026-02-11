@@ -1,4 +1,4 @@
-import {TaskError, type Task} from '@ryanatkn/gro';
+import {TaskError, type Task} from '@fuzdev/gro';
 import {existsSync, readFileSync, writeFileSync} from 'node:fs';
 import {z} from 'zod';
 

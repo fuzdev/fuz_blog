@@ -1,9 +1,9 @@
-import {TaskError, type Task} from '@ryanatkn/gro';
+import {TaskError, type Task} from '@fuzdev/gro';
 import {z} from 'zod';
-import {format_file} from '@ryanatkn/gro/format_file.js';
+import {format_file} from '@fuzdev/gro/format_file.js';
 import {mkdir, writeFile} from 'node:fs/promises';
 import {dirname, join} from 'node:path';
-import {package_json_load} from '@ryanatkn/gro/package_json.js';
+import {package_json_load} from '@fuzdev/gro/package_json.js';
 import {slugify} from '@fuzdev/fuz_util/path.js';
 
 import {collect_blog_post_ids, to_next_blog_post_id} from './blog_helpers.js';
