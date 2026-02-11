@@ -1,0 +1,1 @@
+import{o as c,k as _,A as o,J as d,Y as y,Z as T,_ as b,y as A,K as E,x as f}from"./CxdFUNII.js";function k(t,i,u=!1){_&&o();var r=new E(t),h=u?d:0;function n(a,s){if(_){const l=y(t)===T;if(a===l){var e=b();A(e),r.anchor=e,f(!1),r.ensure(a,s),f(!0);return}}r.ensure(a,s)}c(()=>{var a=!1;i((s,e=!0)=>{a=!0,n(e,s)}),a||n(!1,null)},h)}export{k as i};
