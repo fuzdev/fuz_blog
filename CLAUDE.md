@@ -6,7 +6,7 @@ fuz_blog (`@fuzdev/fuz_blog`) is a SvelteKit blog template and reusable library
 for adding blogs to projects. It provides Atom feed generation and Mastodon
 comments integration.
 
-For coding conventions, see Skill(fuz_stack).
+For coding conventions, see Skill(fuz-stack).
 
 ## Gro commands
 
