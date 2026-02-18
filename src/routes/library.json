@@ -11,7 +11,7 @@
 	"published": true,
 	"package_json": {
 		"name": "@fuzdev/fuz_blog",
-		"version": "0.24.0",
+		"version": "0.24.1",
 		"description": "blog software from scratch with SvelteKit",
 		"glyph": "🖊️",
 		"logo": "logo.svg",
@@ -111,7 +111,7 @@
 	},
 	"source_json": {
 		"name": "@fuzdev/fuz_blog",
-		"version": "0.24.0",
+		"version": "0.24.1",
 		"modules": [
 			{
 				"path": "blog_helpers.ts",

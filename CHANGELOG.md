@@ -1,5 +1,11 @@
 # @fuzdev/fuz_blog
 
+## 0.24.1
+
+### Patch Changes
+
+- fix gro peer dep ([852378d](https://github.com/fuzdev/fuz_blog/commit/852378d))
+
 ## 0.24.0
 
 ### Minor Changes
