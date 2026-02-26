@@ -30,6 +30,11 @@
     "date-fns": "^4",
     "svelte": "^5"
   },
+  "peerDependenciesMeta": {
+    "@fuzdev/fuz_mastodon": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@changesets/changelog-git": "^0.2.1",
     "@fuzdev/fuz_code": "^0.45.1",
