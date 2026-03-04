@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type {SvelteHTMLElements} from 'svelte/elements';
 	import type {Snippet} from 'svelte';
-	import Toot from '@fuzdev/fuz_mastodon/Toot.svelte';
-	import {mastodon_cache_context} from '@fuzdev/fuz_mastodon/mastodon_cache.svelte.js';
+	import Toot from '@fuzdev/fuz_mastodon/Toot.svelte'; // TODO @many make optional
+	import {mastodon_cache_context} from '@fuzdev/fuz_mastodon/mastodon_cache.svelte.js'; // TODO @many make optional
 
 	import BlogPostHeader from './BlogPostHeader.svelte';
 	import {blog_feed_context, type BlogPostData} from './blog.js';
