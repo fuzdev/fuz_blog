@@ -188,7 +188,7 @@ For offline development with Mastodon comments, use the dev cache:
 
 ### Settings and theming
 
-The app uses `Themed` wrapper from fuz_ui and provides a Settings dialog
+The app uses `ThemeRoot` wrapper from fuz_ui and provides a Settings dialog
 accessible from the context menu for theme customization.
 
 ### SvelteKit configuration
