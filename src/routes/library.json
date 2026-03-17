@@ -234,7 +234,7 @@
 					{
 						"name": "BlogPostData",
 						"kind": "type",
-						"doc_comment": "The author-defined data for each post.",
+						"doc_comment": "the author-defined data for each post",
 						"source_line": 20,
 						"type_signature": "BlogPostData",
 						"properties": [
@@ -347,19 +347,19 @@
 								"name": "id",
 								"kind": "variable",
 								"type_signature": "string",
-								"doc_comment": "Blog post path with `blog_post_id`."
+								"doc_comment": "blog post path with `blog_post_id`"
 							},
 							{
 								"name": "url",
 								"kind": "variable",
 								"type_signature": "string",
-								"doc_comment": "Blog post path with `slug`."
+								"doc_comment": "blog post path with `slug`"
 							},
 							{
 								"name": "blog_post_id",
 								"kind": "variable",
 								"type_signature": "BlogPostId",
-								"doc_comment": "Incrementing 1-based integer."
+								"doc_comment": "incrementing 1-based integer"
 							},
 							{
 								"name": "tags",

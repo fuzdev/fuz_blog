@@ -15,7 +15,7 @@ export interface BlogFeed extends Feed {
 }
 
 /**
- * The author-defined data for each post.
+ * the author-defined data for each post
  */
 export interface BlogPostData {
 	title: string;
@@ -48,17 +48,17 @@ export type BlogPostId = Flavored<number, 'BlogPostId'>;
 
 export interface BlogPostItem extends BlogPostData {
 	/**
-	 * Blog post path with `blog_post_id`.
+	 * blog post path with `blog_post_id`
 	 */
 	id: string;
 
 	/**
-	 * Blog post path with `slug`.
+	 * blog post path with `slug`
 	 */
 	url: string;
 
 	/**
-	 * Incrementing 1-based integer.
+	 * incrementing 1-based integer
 	 */
 	blog_post_id: BlogPostId; // TODO maybe random?
 
