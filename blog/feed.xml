@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <id>https://blog.fuz.dev/</id>
+  <title>fuz_blog's blog</title>
+  <subtitle>blog software from scratch with SvelteKit</subtitle>
+  <link href="https://blog.fuz.dev/" />
+  <link href="https://blog.fuz.dev/blog/feed.xml" rel="self" type="application/atom+xml" />
+	<updated>2024-07-15T18:27:36.477Z</updated>
+  <icon>https://blog.fuz.dev/favicon.png</icon>
+  <author>
+    <name>Ryan Atkinson</name>
+    <email>mail@ryanatkn.com</email>
+    <uri>https://www.ryanatkn.com/</uri>
+  </author>
+  
+  <entry>
+    <id>https://blog.fuz.dev/blog/1</id>
+    <title>Hello fuz_blog</title>
+    <link rel="alternate" href="https://blog.fuz.dev/blog/hello-fuz-blog" />
+    <published>2024-07-10T16:04:49.688Z</published>
+    <updated>2024-07-15T18:27:36.477Z</updated>
+    <summary>fuz_blog is now a reusable library</summary>
+    <category term="blog software" /><category term="sveltekit" />
+  </entry>
+
+</feed>
