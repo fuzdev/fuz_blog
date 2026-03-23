@@ -8,7 +8,7 @@
 	const library = library_context.get();
 </script>
 
-<main class="mx_auto p_lg width_atmost_md">
+<main class="mx_auto width_atmost_md pt_lg px_lg pb_xl9">
 	<section class="box">
 		<header class="box">
 			<h1 class="mt_xl2">fuz_blog</h1>
@@ -35,8 +35,5 @@
 		display: flex;
 		align-items: baseline;
 		text-align: center;
-	}
-	section {
-		margin-bottom: var(--space_xl5);
 	}
 </style>
