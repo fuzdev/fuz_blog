@@ -25,7 +25,7 @@
 
 	blog_feed_context.set(feed);
 
-	let show_settings = $state(false);
+	let show_settings = $state.raw(false);
 </script>
 
 <svelte:head>
