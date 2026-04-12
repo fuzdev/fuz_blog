@@ -13,7 +13,7 @@
 <section class="blog">
 	<ol class="panel" reversed>
 		{#each items as item (item)}
-			<li class="blog_card">
+			<li class="blog-card">
 				<a href={resolve(to_pathname(item.url, feed.home_page_url) as any)}>{item.title}</a>
 				<div class="date"><FeedItemDate {item} /></div>
 			</li>
@@ -22,7 +22,7 @@
 		{/each}
 	</ol>
 	<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-	<a class="feed_link chip" href={asset('/blog/feed.xml')} download>Atom feed</a>
+	<a class="feed-link chip" href={asset('/blog/feed.xml')} download>Atom feed</a>
 </section>
 
 <style>
@@ -35,9 +35,14 @@
 	ol {
 		background-color: var(--shade_10);
 		padding: var(--space_sm) var(--space_sm) var(--space_sm) var(--space_xl4);
-		box-shadow: var(--shadow_inset_xs) var(--shadow_color_1);
+		box-shadow: var(--shadow_inset_xs)
+			color-mix(
+				in hsl,
+				var(--shadow_color, var(--shadow_color_umbra)) var(--shadow_alpha_30),
+				transparent
+			);
 	}
-	.blog_card {
+	.blog-card {
 		font-size: var(--font_size_lg);
 		max-width: var(--distance_sm);
 		background-color: var(--shade_00);
@@ -63,7 +68,7 @@
 		font-size: var(--font_size_md);
 		margin-top: var(--space_xs);
 	}
-	.feed_link {
+	.feed-link {
 		margin-top: var(--space_xl);
 	}
 </style>

@@ -2,7 +2,7 @@
 	// TODO should we publish a `BlogPostFooter`? what's useful to do in it?
 </script>
 
-<footer>
+<footer class="column align-items:center text-align:center">
 	<div class="panel p_lg">
 		<p>
 			<span>
@@ -14,12 +14,3 @@
 		</p>
 	</div>
 </footer>
-
-<style>
-	footer {
-		text-align: center;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-	}
-</style>

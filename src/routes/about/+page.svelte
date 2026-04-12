@@ -11,7 +11,7 @@
 <main class="mx_auto width_atmost_md pt_lg px_lg pb_xl9">
 	<section class="box">
 		<header class="box">
-			<h1 class="mt_xl2">fuz_blog</h1>
+			<h1 class="mt_xl2 text-align:center">fuz_blog</h1>
 		</header>
 		<Breadcrumb>{library.package_json.glyph}</Breadcrumb>
 	</section>
@@ -29,11 +29,3 @@
 		</DocsFooter>
 	</section>
 </main>
-
-<style>
-	h1 {
-		display: flex;
-		align-items: baseline;
-		text-align: center;
-	}
-</style>

@@ -12,13 +12,13 @@
 	} = $props();
 </script>
 
-<div class="hash_link" id={slug}>
+<div class="hash-link" id={slug}>
 	{@render children()}
 	<a class="icon_button" href="#{slug}">🔗</a>
 </div>
 
 <style>
-	.hash_link {
+	.hash-link {
 		display: flex;
 		align-items: center;
 		position: relative;
@@ -34,7 +34,7 @@
 		justify-content: center;
 		margin-left: var(--space_md);
 	}
-	.hash_link:hover a {
+	.hash-link:hover a {
 		opacity: 1;
 	}
 </style>
