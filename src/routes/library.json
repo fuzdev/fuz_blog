@@ -46,7 +46,7 @@
 			"@fuzdev/fuz_code": "^0.45.1",
 			"@fuzdev/fuz_css": "^0.59.0",
 			"@fuzdev/fuz_mastodon": "^0.39.0",
-			"@fuzdev/fuz_ui": "^0.191.4",
+			"@fuzdev/fuz_ui": "^0.192.0",
 			"@fuzdev/fuz_util": "^0.59.0",
 			"@fuzdev/gro": "^0.199.0",
 			"@jridgewell/trace-mapping": "^0.3.31",
