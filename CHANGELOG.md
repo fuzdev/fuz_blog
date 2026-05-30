@@ -1,5 +1,13 @@
 # @fuzdev/fuz_blog
 
+## 0.25.0
+
+### Minor Changes
+
+- bump node@24.14 ([4547e46](https://github.com/fuzdev/fuz_blog/commit/4547e46))
+- chore: update styling patterns ([cdafaae](https://github.com/fuzdev/fuz_blog/commit/cdafaae))
+- chore: upgrade peer deps ([a628143](https://github.com/fuzdev/fuz_blog/commit/a628143))
+
 ## 0.24.1
 
 ### Patch Changes
