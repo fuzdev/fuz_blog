@@ -4,10 +4,11 @@
 	import Svg from '@fuzdev/fuz_ui/Svg.svelte';
 	import {logo_fuz_blog} from '@fuzdev/fuz_ui/logos.js';
 	import DocsFooter from '@fuzdev/fuz_ui/DocsFooter.svelte';
+	import {site_context} from '@fuzdev/fuz_ui/site.svelte.js';
+	import {FUZ_DEV_URL} from '@fuzdev/fuz_ui/constants.js';
 	import Code from '@fuzdev/fuz_code/Code.svelte';
-	import {library_context} from '@fuzdev/fuz_ui/library.svelte.js';
 
-	const library = library_context.get();
+	const site = site_context.get();
 
 	/* eslint-disable @typescript-eslint/no-unnecessary-template-expression */
 </script>
@@ -22,9 +23,7 @@
 	</section>
 	<section class="box">
 		<div class="mb_lg">
-			<Card href={resolve('/docs')}
-				>docs{#snippet icon()}{library.package_json.glyph}{/snippet}</Card
-			>
+			<Card href={resolve('/docs')}>docs{#snippet icon()}{site.glyph}{/snippet}</Card>
 		</div>
 		<Card href={resolve('/blog')} icon="🪧">blog</Card>
 	</section>
@@ -68,6 +67,6 @@ $ gro update_post --help`}
 	</section>
 	<section class="mb_xl5 box">
 		<a class="chip mb_xl3" href={resolve('/about')}>about</a>
-		<DocsFooter {library} root_url="https://www.fuz.dev/" />
+		<DocsFooter repo_url={site.repo_url} root_url={FUZ_DEV_URL} />
 	</section>
 </main>

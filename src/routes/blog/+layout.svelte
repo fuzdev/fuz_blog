@@ -1,7 +1,5 @@
 <script lang="ts">
 	import Breadcrumb from '@fuzdev/fuz_ui/Breadcrumb.svelte';
-	import Svg from '@fuzdev/fuz_ui/Svg.svelte';
-	import {logo_fuz_blog} from '@fuzdev/fuz_ui/logos.js';
 	import {DEV} from 'esm-env';
 	import type {Snippet} from 'svelte';
 	import {
@@ -42,13 +40,13 @@
 </script>
 
 <div class="column align-items:center mt_xl3">
-	<Breadcrumb><Svg data={logo_fuz_blog} size="var(--font_size_xl)" /></Breadcrumb>
+	<Breadcrumb />
 </div>
 <div class="column align-items:center flex:1 p_xl2">
 	{@render children()}
 </div>
 <div class="column align-items:center mt_xl3 mb_xl9">
-	<Breadcrumb><Svg data={logo_fuz_blog} size="var(--font_size_xl)" /></Breadcrumb>
+	<Breadcrumb />
 </div>
 
 <!-- TODO 404, needs to work with prerendering -->
