@@ -10,6 +10,7 @@
 	import {SiteState, site_context} from '@fuzdev/fuz_ui/site.svelte.js';
 	import {logo_fuz_blog} from '@fuzdev/fuz_ui/logos.js';
 	import type {Snippet} from 'svelte';
+	import pkg_json from 'virtual:pkg.json';
 
 	import Settings from '$routes/Settings.svelte';
 	import {blog_feed_context} from '$lib/blog.js';
@@ -21,13 +22,7 @@
 		children: Snippet;
 	} = $props();
 
-	site_context.set(
-		new SiteState({
-			icon: logo_fuz_blog,
-			glyph: '🖊️',
-			repo_url: 'https://github.com/fuzdev/fuz_blog',
-		}),
-	);
+	site_context.set(new SiteState({icon: logo_fuz_blog, pkg_json}));
 
 	blog_feed_context.set(feed);
 
