@@ -1,5 +1,12 @@
 # @fuzdev/fuz_blog
 
+## 0.26.0
+
+### Minor Changes
+
+- chore: fix peer deps ([3aa0fd1](https://github.com/fuzdev/fuz_blog/commit/3aa0fd1))
+- chore: upgrade peer deps ([a19d202](https://github.com/fuzdev/fuz_blog/commit/a19d202))
+
 ## 0.25.0
 
 ### Minor Changes
