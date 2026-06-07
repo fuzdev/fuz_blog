@@ -9,7 +9,7 @@
 [npm](https://www.npmjs.com/package/@fuzdev/fuz_blog):
 
 ```bash
-npm i @fuzdev/fuz_blog
+npm i -D @fuzdev/fuz_blog
 ```
 
 ## License [🐦](https://wikipedia.org/wiki/Free_and_open-source_software)
