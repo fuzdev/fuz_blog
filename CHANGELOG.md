@@ -1,5 +1,11 @@
 # @fuzdev/fuz_blog
 
+## 0.27.0
+
+### Minor Changes
+
+- deps: upgrade `@fuzdev/fuz_ui@0.203.0` ([c3ee545](https://github.com/fuzdev/fuz_blog/commit/c3ee545))
+
 ## 0.26.0
 
 ### Minor Changes
