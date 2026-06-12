@@ -1,5 +1,11 @@
 # @fuzdev/fuz_blog
 
+## 0.28.0
+
+### Minor Changes
+
+- chore: bump fuz_ui peer dep ([6d39ca9](https://github.com/fuzdev/fuz_blog/commit/6d39ca9))
+
 ## 0.27.0
 
 ### Minor Changes
