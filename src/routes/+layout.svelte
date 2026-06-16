@@ -1,21 +1,21 @@
 <script lang="ts">
 	import 'virtual:fuz.css';
 	import '@fuzdev/fuz_code/theme.css';
-	import '$routes/style.css';
+	import './style.css';
 
 	import ThemeRoot from '@fuzdev/fuz_ui/ThemeRoot.svelte';
 	import Dialog from '@fuzdev/fuz_ui/Dialog.svelte';
 	import DialogContent from '@fuzdev/fuz_ui/DialogContent.svelte';
 	import ContextmenuRoot from '@fuzdev/fuz_ui/ContextmenuRoot.svelte';
-	import {contextmenu_attachment} from '@fuzdev/fuz_ui/contextmenu_state.svelte.js';
-	import {SiteState, site_context} from '@fuzdev/fuz_ui/site.svelte.js';
-	import {logo_fuz_blog} from '@fuzdev/fuz_ui/logos.js';
+	import {contextmenu_attachment} from '@fuzdev/fuz_ui/contextmenu_state.svelte.ts';
+	import {SiteState, site_context} from '@fuzdev/fuz_ui/site.svelte.ts';
+	import {logo_fuz_blog} from '@fuzdev/fuz_ui/logos.ts';
 	import type {Snippet} from 'svelte';
 	import pkg_json from 'virtual:pkg.json';
 
-	import Settings from '$routes/Settings.svelte';
-	import {blog_feed_context} from '$lib/blog.js';
-	import {feed} from '$routes/blog/feed.js';
+	import Settings from './Settings.svelte';
+	import {blog_feed_context} from '$lib/blog.ts';
+	import {feed} from './blog/feed.ts';
 
 	const {
 		children,

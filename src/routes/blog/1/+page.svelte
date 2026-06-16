@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import type {BlogPostData} from '$lib/blog.js';
+	import type {BlogPostData} from '$lib/blog.ts';
 
 	export const post = {
 		title: 'Hello fuz_blog',

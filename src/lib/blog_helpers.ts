@@ -1,8 +1,8 @@
-import {strip_end} from '@fuzdev/fuz_util/string.js';
+import {strip_end} from '@fuzdev/fuz_util/string.ts';
 import {join} from 'node:path';
 import {existsSync} from 'node:fs';
 
-import type {BlogPostId, BlogPostData, BlogPostItem, BlogPostModule} from './blog.js';
+import type {BlogPostId, BlogPostData, BlogPostItem, BlogPostModule} from './blog.ts';
 
 // TODO maybe move non-node stuff to `blog`, maybe rename this to `blog_fs_helpers`?
 

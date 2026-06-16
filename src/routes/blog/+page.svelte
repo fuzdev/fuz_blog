@@ -2,8 +2,8 @@
 	import {asset, resolve} from '$app/paths';
 
 	import FeedItemDate from '$lib/FeedItemDate.svelte';
-	import {blog_feed_context} from '$lib/blog.js';
-	import {to_pathname} from '$lib/util.js';
+	import {blog_feed_context} from '$lib/blog.ts';
+	import {to_pathname} from '$lib/util.ts';
 
 	const feed = blog_feed_context.get();
 

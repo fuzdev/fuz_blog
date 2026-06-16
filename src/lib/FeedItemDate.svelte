@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type {FeedItem} from './feed.js';
-	import {format_date} from './util.js';
+	import type {FeedItem} from './feed.ts';
+	import {format_date} from './util.ts';
 
 	const {
 		item,

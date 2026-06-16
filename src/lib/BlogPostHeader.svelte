@@ -1,6 +1,6 @@
 <script lang="ts">
 	import FeedItemDate from './FeedItemDate.svelte';
-	import type {BlogPostItem} from './blog.js';
+	import type {BlogPostItem} from './blog.ts';
 
 	const {
 		item,

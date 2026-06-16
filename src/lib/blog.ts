@@ -1,8 +1,8 @@
 import type {Component} from 'svelte';
-import type {Flavored, OmitStrict} from '@fuzdev/fuz_util/types.js';
-import {create_context} from '@fuzdev/fuz_ui/context_helpers.js';
+import type {Flavored, OmitStrict} from '@fuzdev/fuz_util/types.ts';
+import {create_context} from '@fuzdev/fuz_ui/context_helpers.ts';
 
-import type {Feed} from './feed.js';
+import type {Feed} from './feed.ts';
 
 // TODO inconsistent naming with `BlogPostData` and `BlogPostItem`,
 // consider `BlogItem` or `BlogFeedItem`?

@@ -1,12 +1,12 @@
 import {TaskError, type Task} from '@fuzdev/gro';
 import {z} from 'zod';
-import {format_file} from '@fuzdev/gro/format_file.js';
+import {format_file} from '@fuzdev/gro/format_file.ts';
 import {mkdir, writeFile} from 'node:fs/promises';
 import {dirname, join} from 'node:path';
-import {package_json_load} from '@fuzdev/gro/package_json.js';
-import {slugify} from '@fuzdev/fuz_util/path.js';
+import {package_json_load} from '@fuzdev/gro/package_json.ts';
+import {slugify} from '@fuzdev/fuz_util/path.ts';
 
-import {collect_blog_post_ids, to_next_blog_post_id} from './blog_helpers.js';
+import {collect_blog_post_ids, to_next_blog_post_id} from './blog_helpers.ts';
 
 /** @nodocs */
 export const Args = z

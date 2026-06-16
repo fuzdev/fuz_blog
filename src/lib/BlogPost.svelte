@@ -2,10 +2,10 @@
 	import type {SvelteHTMLElements} from 'svelte/elements';
 	import type {Snippet} from 'svelte';
 	import Toot from '@fuzdev/fuz_mastodon/Toot.svelte';
-	import {mastodon_cache_context} from '@fuzdev/fuz_mastodon/mastodon_cache.svelte.js';
+	import {mastodon_cache_context} from '@fuzdev/fuz_mastodon/mastodon_cache.svelte.ts';
 
 	import BlogPostHeader from './BlogPostHeader.svelte';
-	import {blog_feed_context, type BlogPostData} from './blog.js';
+	import {blog_feed_context, type BlogPostData} from './blog.ts';
 
 	const {
 		post,
