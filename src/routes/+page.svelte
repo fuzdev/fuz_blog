@@ -34,9 +34,9 @@
 		<Code
 			content={`<!-- src/routes/+layout.svelte -->
 ${'<'}script lang="ts">
-	import {set_blog_feed, get_blog_feed} from '@fuzdev/fuz_blog/blog.js';
+	import {set_blog_feed, get_blog_feed} from '@fuzdev/fuz_blog/blog.ts';
 
-	import {feed} from '$routes/blog/feed.js';
+	import {feed} from '$routes/blog/feed.ts';
 
 	set_blog_feed(feed);
 

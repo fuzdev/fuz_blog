@@ -52,7 +52,7 @@ export const task: Task<Args> = {
 
 		const unformatted = `
 			<script lang="ts" module>
-				import type {BlogPostData} from '${fuz_blog_import_path}/blog.js';
+				import type {BlogPostData} from '${fuz_blog_import_path}/blog.ts';
 
 				export const post = {
 					title: ${JSON.stringify(title)},
