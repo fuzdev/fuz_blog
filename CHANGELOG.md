@@ -1,5 +1,11 @@
 # @fuzdev/fuz_blog
 
+## 0.28.1
+
+### Patch Changes
+
+- chore: change to `.ts` imported extensions ([401f2dc](https://github.com/fuzdev/fuz_blog/commit/401f2dc))
+
 ## 0.28.0
 
 ### Minor Changes
