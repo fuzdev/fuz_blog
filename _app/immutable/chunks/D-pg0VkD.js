@@ -1,1 +1,0 @@
-import{o as c,q as o,v as l,R as v,T as b,U as g,I as p,B as y,G as _,J as T}from"./DWj2csVt.js";function E(d,f,h=!1){var n;o&&(n=T,l());var s=new y(d),u=h?v:0;function t(a,r){if(o){var e=b(n);if(a!==parseInt(e.substring(1))){var i=g();p(i),s.anchor=i,_(!1),s.ensure(a,r),_(!0);return}}s.ensure(a,r)}c(()=>{var a=!1;f((r,e=0)=>{a=!0,t(e,r)}),a||t(-1,null)},u)}export{E as i};
