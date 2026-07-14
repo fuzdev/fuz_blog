@@ -17,6 +17,7 @@
 
 <script lang="ts">
 	import BlogPost from '$lib/BlogPost.svelte';
+	import BlogPostComments from '$lib/BlogPostComments.svelte';
 	import BlogPostFooter from '$routes/blog/BlogPostFooter.svelte';
 </script>
 
@@ -38,5 +39,8 @@
 	</section>
 	{#snippet footer()}
 		<BlogPostFooter />
+	{/snippet}
+	{#snippet comments(item)}
+		<BlogPostComments {item} />
 	{/snippet}
 </BlogPost>

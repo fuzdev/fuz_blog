@@ -1,23 +1,26 @@
 <script lang="ts">
 	import type {SvelteHTMLElements} from 'svelte/elements';
 	import type {Snippet} from 'svelte';
-	import Toot from '@fuzdev/fuz_mastodon/Toot.svelte';
-	import {mastodon_cache_context} from '@fuzdev/fuz_mastodon/mastodon_cache.svelte.ts';
 
 	import BlogPostHeader from './BlogPostHeader.svelte';
-	import {blog_feed_context, type BlogPostData} from './blog.ts';
+	import {blog_feed_context, type BlogPostData, type BlogPostItem} from './blog.ts';
 
 	const {
 		post,
 		attrs,
 		footer,
-		separator = default_separator,
+		comments,
 		children,
 	}: {
 		post: BlogPostData;
 		attrs?: SvelteHTMLElements['article'] | undefined;
 		footer?: Snippet;
-		separator?: Snippet; // TODO currently only used before comments, maybe rename to `comments_header` or something?
+		/**
+		 * Renders after `footer`, usually with `BlogPostComments`.
+		 * Importing `BlogPostComments.svelte` is what opts into the
+		 * `@fuzdev/fuz_mastodon` peer dependency.
+		 */
+		comments?: Snippet<[item: BlogPostItem]>;
 		children: Snippet;
 	} = $props();
 
@@ -25,8 +28,6 @@
 
 	// TODO maybe clean up the type vs `post`
 	const item = feed.items.find((i) => i.slug === post.slug);
-
-	const cache = mastodon_cache_context.get_maybe();
 </script>
 
 <svelte:head>
@@ -40,29 +41,9 @@
 			<BlogPostHeader {item} />
 			{@render children()}
 			{@render footer?.()}
-			{#if item.comments}
-				{@render separator()}
-				<!-- TODO the storage key is weird -->
-				<!-- TODO use local cache in dev -->
-				<section>
-					<h2>Comments</h2>
-					{#if !cache || cache.data !== undefined}
-						<Toot
-							url={item.comments.url}
-							include_replies
-							initial_autoload
-							reply_filter={(item) => ({type: 'favourited_by', favourited_by: [item.account.acct]})}
-							settings_storage_key="{item.id}_comments_settings"
-							cache={cache?.data}
-						/>
-					{/if}
-				</section>
-				{@render separator()}
-			{/if}
+			{@render comments?.(item)}
 		</article>
 	{:else}
 		<div>cannot find post <code>{post.slug}</code></div>
 	{/if}
 </div>
-
-{#snippet default_separator()}<hr />{/snippet}

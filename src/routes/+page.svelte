@@ -29,19 +29,35 @@
 	</section>
 	<section>
 		<p>
+			Declare your blogs in <code>src/routes/blogs.ts</code> — one entry per blog, each with a route
+			<code>dirname</code> and feed metadata:
+		</p>
+		<Code
+			content={`// src/routes/blogs.ts
+import type {BlogConfig} from '@fuzdev/fuz_blog/blog.ts';
+
+export const blogs: Array<BlogConfig> = [
+	{
+		dirname: 'blog',
+		feed: {
+			title: 'my blog',
+			home_page_url: 'https://www.example.com/blog',
+			// ...the rest of the feed metadata
+		},
+	},
+];`}
+		/>
+		<p>
 			To enable your generated <code>feed.xml</code>, include it as a <code>link</code> in your layout:
 		</p>
 		<Code
 			content={`<!-- src/routes/+layout.svelte -->
 ${'<'}script lang="ts">
-	import {set_blog_feed, get_blog_feed} from '@fuzdev/fuz_blog/blog.ts';
+	import {blog_feed_context} from '@fuzdev/fuz_blog/blog.ts';
 
 	import {feed} from '$routes/blog/feed.ts';
 
-	set_blog_feed(feed);
-
-	// To get the feed from any descendent:
-	const feed = get_blog_feed();
+	blog_feed_context.set(feed);
 </script>
 
 <svelte:head>

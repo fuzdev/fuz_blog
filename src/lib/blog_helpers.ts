@@ -2,9 +2,66 @@ import {strip_end} from '@fuzdev/fuz_util/string.ts';
 import {join} from 'node:path';
 import {existsSync} from 'node:fs';
 
-import type {BlogPostId, BlogPostData, BlogPostItem, BlogPostModule} from './blog.ts';
+import type {
+	BlogPostId,
+	BlogPostData,
+	BlogPostItem,
+	BlogPostModule,
+	BlogPostScaffoldOptions,
+	BlogsModule,
+} from './blog.ts';
 
 // TODO maybe move non-node stuff to `blog`, maybe rename this to `blog_fs_helpers`?
+
+/**
+ * Loads the consumer's `src/routes/blogs.ts` registry.
+ */
+export const load_blogs_module = async (dir: string): Promise<BlogsModule> => {
+	const path = join(dir, 'src/routes/blogs.ts');
+	if (!existsSync(path)) {
+		throw new Error(
+			`expected a blogs registry at ${path} - export \`blogs: Array<BlogConfig>\` from it`,
+		);
+	}
+	const mod = (await import(path)) as BlogsModule; // TODO zod parse
+	if (!Array.isArray(mod.blogs) || mod.blogs.length === 0) {
+		throw new Error(`expected ${path} to export a non-empty \`blogs\` array`);
+	}
+	return mod;
+};
+
+/**
+ * The default post scaffold for `gro post`.
+ * Override per-blog with `BlogConfig.scaffold`.
+ */
+export const scaffold_blog_post = (options: BlogPostScaffoldOptions): string => {
+	const {title, slug, date, fuz_blog_import_path} = options;
+	return `
+		<script lang="ts" module>
+			import type {BlogPostData} from '${fuz_blog_import_path}/blog.ts';
+
+			export const post = {
+				title: ${JSON.stringify(title)},
+				slug: '${slug}',
+				date_published: '${date}',
+				date_modified: '${date}',
+				summary: 'todo',
+				tags: ['todo'],
+			} satisfies BlogPostData;
+		</script>
+
+		<script lang="ts">
+			import BlogPost from '${fuz_blog_import_path}/BlogPost.svelte';
+		</script>
+
+		<!-- This component is totally optional, you have full control over the page. -->
+		<BlogPost {post}>
+			<p>
+				TODO content goes here
+			</p>
+		</BlogPost>
+	`;
+};
 
 export const resolve_blog_post_item = (
 	blog_post_id: BlogPostId,

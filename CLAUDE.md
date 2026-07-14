@@ -34,12 +34,23 @@ Both `gro post` and `gro update_post` support additional flags:
 
 ```bash
 gro post "Title" --date 2024-07-10T16:04:49.688Z  # custom date
+gro post "Title" --blog autoblog                  # target a specific registered blog
 gro update_post 1 --date 2024-07-10T16:04:49.688Z # update specific post
+gro update_post 1 --blog autoblog                 # update in a specific blog
 ```
 
 Arguments use Zod schemas for validation. The tasks auto-detect whether they're
 running in the fuz_blog library itself or in a consuming project, adjusting
 import paths accordingly.
+
+Blogs are declared in the consumer's `src/routes/blogs.ts`, which exports
+`blogs: Array<BlogConfig>` — one entry per blog with a route `dirname`, feed
+metadata, optional `slug_routes: false` (integer-id post URLs, no generated
+slug routes), and an optional `scaffold` function customizing what `gro post`
+generates for that blog. `--blog` defaults to the first registered entry.
+Comments are opt-in: `BlogPost.svelte` is mastodon-free and takes a `comments`
+snippet; `BlogPostComments.svelte` carries the Mastodon rendering, and
+importing it is what requires the optional `@fuzdev/fuz_mastodon` peer.
 
 ## Key dependencies
 
