@@ -9,6 +9,7 @@ import {slugify} from '@fuzdev/fuz_util/path.ts';
 import {
 	collect_blog_post_ids,
 	load_blogs_module,
+	resolve_blog_config,
 	scaffold_blog_post,
 	to_next_blog_post_id,
 } from './blog_helpers.ts';
@@ -51,13 +52,7 @@ export const task: Task<Args> = {
 		const routes_path = 'src/routes'; // TODO read from SvelteKit config;
 
 		const {blogs} = await load_blogs_module(dir);
-		const config = blog_dirname ? blogs.find((b) => b.dirname === blog_dirname) : blogs[0];
-		if (!config) {
-			throw new TaskError(
-				`unknown blog ${JSON.stringify(blog_dirname)}, expected one of: ` +
-					blogs.map((b) => b.dirname).join(', '),
-			);
-		}
+		const config = resolve_blog_config(blogs, blog_dirname);
 
 		const blog_dir = join(dir, routes_path, config.dirname);
 

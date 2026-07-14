@@ -1,8 +1,10 @@
+import {TaskError} from '@fuzdev/gro';
 import {strip_end} from '@fuzdev/fuz_util/string.ts';
 import {join} from 'node:path';
 import {existsSync} from 'node:fs';
 
 import type {
+	BlogConfig,
 	BlogPostId,
 	BlogPostData,
 	BlogPostItem,
@@ -28,6 +30,25 @@ export const load_blogs_module = async (dir: string): Promise<BlogsModule> => {
 		throw new Error(`expected ${path} to export a non-empty \`blogs\` array`);
 	}
 	return mod;
+};
+
+/**
+ * Resolves a `BlogConfig` from the registry by its `dirname`,
+ * defaulting to the first registered blog when `dirname` is omitted.
+ * Throws a `TaskError` if `dirname` matches no registered blog.
+ */
+export const resolve_blog_config = (
+	blogs: Array<BlogConfig>,
+	dirname: string | undefined,
+): BlogConfig => {
+	const config = dirname ? blogs.find((b) => b.dirname === dirname) : blogs[0];
+	if (!config) {
+		throw new TaskError(
+			`unknown blog ${JSON.stringify(dirname)}, expected one of: ` +
+				blogs.map((b) => b.dirname).join(', '),
+		);
+	}
+	return config;
 };
 
 /**

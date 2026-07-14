@@ -97,12 +97,15 @@ export type BlogPostId = Flavored<number, 'BlogPostId'>;
 
 export interface BlogPostItem extends BlogPostData {
 	/**
-	 * Blog post path with `blog_post_id`.
+	 * Absolute URL to the post keyed by `blog_post_id`
+	 * (e.g. `https://example.com/blog/1`), also used as the feed entry id.
 	 */
 	id: string;
 
 	/**
-	 * Blog post path with `slug`.
+	 * Absolute URL to the post keyed by `slug`
+	 * (e.g. `https://example.com/blog/my-post`).
+	 * Equals `id` when the blog's `slug_routes` is `false`.
 	 */
 	url: string;
 

@@ -1,6 +1,5 @@
 import type {Gen} from '@fuzdev/gro/gen.ts';
 import {join} from 'node:path';
-import {strip_end} from '@fuzdev/fuz_util/string.ts';
 import {package_json_load} from '@fuzdev/gro/package_json.ts';
 
 import {create_atom_feed} from './feed.ts';
@@ -39,10 +38,9 @@ export const gen: Gen = async ({origin_path}) => {
 		// 	validate_blog_post(mod.post)
 		// }
 
-		const blog_url = strip_end(blog.home_page_url, '/');
-
+		// `resolve_blog_post_item` strips a trailing slash off `home_page_url`
 		const items = modules.map((mod, i) => {
-			const item = resolve_blog_post_item(i + 1, blog_url, mod.post);
+			const item = resolve_blog_post_item(i + 1, blog.home_page_url, mod.post);
 			// without slug routes, posts are addressed by their integer id
 			return slug_routes ? item : {...item, url: item.id};
 		});

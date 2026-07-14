@@ -3,7 +3,7 @@ import {existsSync, readFileSync, writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {z} from 'zod';
 
-import {load_blogs_module} from './blog_helpers.ts';
+import {load_blogs_module, resolve_blog_config} from './blog_helpers.ts';
 
 /** @nodocs */
 export const Args = z
@@ -37,13 +37,7 @@ export const task: Task<Args> = {
 		const dir = process.cwd();
 
 		const {blogs} = await load_blogs_module(dir);
-		const config = blog_dirname ? blogs.find((b) => b.dirname === blog_dirname) : blogs[0];
-		if (!config) {
-			throw new TaskError(
-				`unknown blog ${JSON.stringify(blog_dirname)}, expected one of: ` +
-					blogs.map((b) => b.dirname).join(', '),
-			);
-		}
+		const config = resolve_blog_config(blogs, blog_dirname);
 
 		const filename = join(dir, 'src/routes', config.dirname, `${id}/+page.svelte`);
 		if (!existsSync(filename)) {

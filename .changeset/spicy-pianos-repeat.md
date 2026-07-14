@@ -21,3 +21,5 @@ break: multi-blog support, mastodon decoupling, and task fixes
   `BlogPostComments.svelte` carries the mastodon rendering and separators, and
   `@fuzdev/fuz_mastodon` is now an optional peer dependency (only needed if
   you import `BlogPostComments.svelte`)
+- removed the now-unused `to_pathname` helper from `util.ts` — the blog listing
+  derives each post's route path from `item.url` directly

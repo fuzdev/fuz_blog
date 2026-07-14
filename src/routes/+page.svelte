@@ -70,6 +70,10 @@ ${'<'}script lang="ts">
 	/>
 </svelte:head>`}
 		/>
+		<p>
+			With more than one blog, set each blog's <code>feed</code> in its own
+			<code>src/routes/&lt;dirname&gt;/+layout.svelte</code> so its pages read the right context.
+		</p>
 		<h3>Create a new post</h3>
 		<Code
 			content={`$ gro post "Some post title"

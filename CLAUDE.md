@@ -48,6 +48,12 @@ Blogs are declared in the consumer's `src/routes/blogs.ts`, which exports
 metadata, optional `slug_routes: false` (integer-id post URLs, no generated
 slug routes), and an optional `scaffold` function customizing what `gro post`
 generates for that blog. `--blog` defaults to the first registered entry.
+
+Each blog generates its own `src/routes/<dirname>/feed.ts`. Components read the
+active feed from `blog_feed_context`, so with more than one blog set each blog's
+feed in its own subtree — e.g. a `src/routes/<dirname>/+layout.svelte` calling
+`blog_feed_context.set(feed)` — rather than a single root layout for all of them.
+
 Comments are opt-in: `BlogPost.svelte` is mastodon-free and takes a `comments`
 snippet; `BlogPostComments.svelte` carries the Mastodon rendering, and
 importing it is what requires the optional `@fuzdev/fuz_mastodon` peer.
@@ -215,11 +221,10 @@ accessible from the context menu for theme customization.
 
 ## Known limitations
 
-- **Hard-coded `/blog/` path** - The blog route path is currently not
-  configurable (marked as TODO in code)
 - **Hard-coded `src/routes/` path** - Route scanning assumes standard SvelteKit
   structure
-- **No test coverage** - Project currently has no test files
+- **Partial test coverage** - `src/test/blog_helpers.test.ts` covers the
+  post-item/URL and blog-config logic; most components and tasks are untested
 
 ## Project standards
 
