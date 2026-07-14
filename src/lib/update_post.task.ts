@@ -1,9 +1,7 @@
 import {TaskError, type Task} from '@fuzdev/gro';
-import {existsSync, readFileSync, writeFileSync} from 'node:fs';
-import {join} from 'node:path';
 import {z} from 'zod';
 
-import {load_blogs_module} from './blog_helpers.ts';
+import {load_blogs_module, update_blog_post} from './blog_helpers.ts';
 import {resolve_blog_config} from './blog.ts';
 
 /** @nodocs */
@@ -40,13 +38,7 @@ export const task: Task<Args> = {
 		const {blogs} = await load_blogs_module(dir);
 		const config = resolve_blog_config(blogs, blog_dirname);
 
-		const filename = join(dir, 'src/routes', config.dirname, `${id}/+page.svelte`);
-		if (!existsSync(filename)) {
-			throw new TaskError(`post with id '${id}' not found at path '${filename}'`);
-		}
-		const content = readFileSync(filename, 'utf8');
-		const updated_content = content.replace(/date_modified: '.*'/, `date_modified: '${date}'`);
-		writeFileSync(filename, updated_content, 'utf8');
+		await update_blog_post({dir, config, blog_post_id: Number(id), date});
 
 		await invoke_task('gen');
 	},

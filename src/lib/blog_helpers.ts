@@ -1,6 +1,6 @@
 import {format_file} from '@fuzdev/gro/format_file.ts';
 import {slugify} from '@fuzdev/fuz_util/path.ts';
-import {mkdir, writeFile} from 'node:fs/promises';
+import {mkdir, readFile, writeFile} from 'node:fs/promises';
 import {existsSync} from 'node:fs';
 import {dirname, join} from 'node:path';
 
@@ -146,4 +146,43 @@ export const create_blog_post = async (
 	await mkdir(dirname(path), {recursive: true});
 	await writeFile(path, content, 'utf8');
 	return {blog_post_id, path, slug};
+};
+
+export interface UpdateBlogPostOptions {
+	/** The project root, usually `process.cwd()`. */
+	dir: string;
+	/** The target blog, e.g. from `resolve_blog_config`. */
+	config: BlogConfig;
+	/** The id of the post to update. */
+	blog_post_id: BlogPostId;
+	/** ISO date written to `date_modified`. */
+	date: string;
+	/** @default 'src/routes' */
+	routes_path?: string;
+}
+
+export interface UpdatedBlogPost {
+	blog_post_id: BlogPostId;
+	/** Absolute path to the updated `+page.svelte`. */
+	path: string;
+}
+
+/**
+ * Rewrites the `date_modified` of an existing post file for `config`, returning
+ * its id and path. Does not run `gen` - callers invoke that afterward (see
+ * `update_post.task.ts`).
+ */
+export const update_blog_post = async (
+	options: UpdateBlogPostOptions,
+): Promise<UpdatedBlogPost> => {
+	const {dir, config, blog_post_id, date, routes_path = 'src/routes'} = options;
+	const blog_dir = join(dir, routes_path, config.dirname);
+	const path = to_blog_post_path(blog_dir, blog_post_id);
+	if (!existsSync(path)) {
+		throw new Error(`post with id '${blog_post_id}' not found at path '${path}'`);
+	}
+	const content = await readFile(path, 'utf8');
+	const updated_content = content.replace(/date_modified: '[^']*'/, `date_modified: '${date}'`);
+	await writeFile(path, updated_content, 'utf8');
+	return {blog_post_id, path};
 };
