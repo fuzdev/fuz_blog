@@ -7,7 +7,7 @@
 
 	const {
 		post,
-		item: item_prop,
+		item,
 		attrs,
 		meta,
 		footer,
@@ -22,7 +22,7 @@
 		item?: BlogPostItem;
 		attrs?: SvelteHTMLElements['article'] | undefined;
 		/**
-		 * Renders in the header after `BlogPostHeader`, e.g. for post provenance.
+		 * Renders after `BlogPostHeader`, e.g. for post provenance.
 		 */
 		meta?: Snippet<[item: BlogPostItem]>;
 		footer?: Snippet;
@@ -36,8 +36,8 @@
 	} = $props();
 
 	// TODO maybe clean up the type vs `post`
-	const item = $derived(
-		item_prop ?? blog_feed_context.get_maybe()?.items.find((i) => i.slug === post.slug),
+	const resolved_item = $derived(
+		item ?? blog_feed_context.get_maybe()?.items.find((i) => i.slug === post.slug),
 	);
 </script>
 
@@ -47,13 +47,13 @@
 </svelte:head>
 
 <div class="blog_post width_atmost_md">
-	{#if item}
+	{#if resolved_item}
 		<article {...attrs}>
-			<BlogPostHeader {item} />
-			{@render meta?.(item)}
+			<BlogPostHeader item={resolved_item} />
+			{@render meta?.(resolved_item)}
 			{@render children()}
 			{@render footer?.()}
-			{@render comments?.(item)}
+			{@render comments?.(resolved_item)}
 		</article>
 	{:else}
 		<div>cannot find post <code>{post.slug}</code></div>

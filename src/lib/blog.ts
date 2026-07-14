@@ -144,6 +144,9 @@ export const resolve_blog_config = (
  * `home_page_url`. Emits only `BlogPostItem` fields - a consumer's extra post
  * metadata stays on the page's `post` for its component to render, and does not
  * leak into the typed generated feed.
+ * @param blog_post_id - the post's incrementing 1-based id
+ * @param home_page_url - the blog's index url, from its `feed.home_page_url`
+ * @param post - the author-defined post metadata
  * @param options - `slug_routes: false` makes `url` the integer-id `id`
  */
 export const resolve_blog_post_item = (

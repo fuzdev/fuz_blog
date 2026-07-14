@@ -138,7 +138,7 @@ export const create_blog_post = async (
 	const slug = slugify(title);
 	const blog_dir = join(dir, routes_path, config.dirname);
 	const blog_post_id = to_next_blog_post_id(collect_blog_post_ids(blog_dir));
-	const path = join(blog_dir, blog_post_id + '/+page.svelte');
+	const path = to_blog_post_path(blog_dir, blog_post_id);
 	const scaffold = options.scaffold ?? config.scaffold ?? scaffold_blog_post;
 	const content = format_file(scaffold({title, slug, date, fuz_blog_import_path}), {
 		lang: 'svelte',
