@@ -3,7 +3,6 @@
 
 	import FeedItemDate from '$lib/FeedItemDate.svelte';
 	import {blog_feed_context} from '$lib/blog.ts';
-	import {to_pathname} from '$lib/util.ts';
 
 	const feed = blog_feed_context.get();
 
@@ -14,7 +13,7 @@
 	<ol class="panel" reversed>
 		{#each items as item (item)}
 			<li class="blog-card">
-				<a href={resolve(to_pathname(item.url, feed.home_page_url) as any)}>{item.title}</a>
+				<a href={resolve(new URL(item.url).pathname as any)}>{item.title}</a>
 				<div class="date"><FeedItemDate {item} /></div>
 			</li>
 		{:else}

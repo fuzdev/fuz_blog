@@ -34,12 +34,29 @@ Both `gro post` and `gro update_post` support additional flags:
 
 ```bash
 gro post "Title" --date 2024-07-10T16:04:49.688Z  # custom date
+gro post "Title" --blog autoblog                  # target a specific registered blog
 gro update_post 1 --date 2024-07-10T16:04:49.688Z # update specific post
+gro update_post 1 --blog autoblog                 # update in a specific blog
 ```
 
 Arguments use Zod schemas for validation. The tasks auto-detect whether they're
 running in the fuz_blog library itself or in a consuming project, adjusting
 import paths accordingly.
+
+Blogs are declared in the consumer's `src/routes/blogs.ts`, which exports
+`blogs: Array<BlogConfig>` — one entry per blog with a route `dirname`, feed
+metadata, optional `slug_routes: false` (integer-id post URLs, no generated
+slug routes), and an optional `scaffold` function customizing what `gro post`
+generates for that blog. `--blog` defaults to the first registered entry.
+
+Each blog generates its own `src/routes/<dirname>/feed.ts`. Components read the
+active feed from `blog_feed_context`, so with more than one blog set each blog's
+feed in its own subtree — e.g. a `src/routes/<dirname>/+layout.svelte` calling
+`blog_feed_context.set(feed)` — rather than a single root layout for all of them.
+
+Comments are opt-in: `BlogPost.svelte` is mastodon-free and takes a `comments`
+snippet; `BlogPostComments.svelte` carries the Mastodon rendering, and
+importing it is what requires the optional `@fuzdev/fuz_mastodon` peer.
 
 ## Key dependencies
 
@@ -204,11 +221,10 @@ accessible from the context menu for theme customization.
 
 ## Known limitations
 
-- **Hard-coded `/blog/` path** - The blog route path is currently not
-  configurable (marked as TODO in code)
 - **Hard-coded `src/routes/` path** - Route scanning assumes standard SvelteKit
   structure
-- **No test coverage** - Project currently has no test files
+- **Partial test coverage** - `src/test/blog_helpers.test.ts` covers the
+  post-item/URL and blog-config logic; most components and tasks are untested
 
 ## Project standards
 

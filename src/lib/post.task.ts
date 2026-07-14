@@ -6,12 +6,22 @@ import {dirname, join} from 'node:path';
 import {package_json_load} from '@fuzdev/gro/package_json.ts';
 import {slugify} from '@fuzdev/fuz_util/path.ts';
 
-import {collect_blog_post_ids, to_next_blog_post_id} from './blog_helpers.ts';
+import {
+	collect_blog_post_ids,
+	load_blogs_module,
+	resolve_blog_config,
+	scaffold_blog_post,
+	to_next_blog_post_id,
+} from './blog_helpers.ts';
 
 /** @nodocs */
 export const Args = z
 	.object({
 		_: z.array(z.string()).meta({description: 'post title'}).max(1).default([]),
+		blog: z
+			.string()
+			.meta({description: 'dirname of the target blog, defaulting to the first registered'})
+			.optional(),
 		date: z.string().meta({description: "the post's date_published"}).optional(),
 	})
 	.strict();
@@ -24,6 +34,7 @@ export const task: Task<Args> = {
 	run: async ({args, log, invoke_task}) => {
 		const {
 			_: [raw_title],
+			blog: blog_dirname,
 			date = new Date().toISOString(),
 		} = args;
 
@@ -33,16 +44,17 @@ export const task: Task<Args> = {
 		const title = raw_title.trim();
 		const slug = slugify(title);
 
-		// TODO @many parameterize and refactor
-
 		const package_json = await package_json_load();
 		const fuz_blog_import_path =
 			package_json.name === '@fuzdev/fuz_blog' ? '$lib' : '@fuzdev/fuz_blog';
 
 		const dir = process.cwd();
-		const blog_dirname = 'blog'; // TODO @many harcoded /blog/
 		const routes_path = 'src/routes'; // TODO read from SvelteKit config;
-		const blog_dir = join(dir, routes_path, blog_dirname);
+
+		const {blogs} = await load_blogs_module(dir);
+		const config = resolve_blog_config(blogs, blog_dirname);
+
+		const blog_dir = join(dir, routes_path, config.dirname);
 
 		const blog_post_ids = collect_blog_post_ids(blog_dir);
 
@@ -50,31 +62,9 @@ export const task: Task<Args> = {
 
 		const next_blog_post_path = join(blog_dir, next_blog_post_id + '/+page.svelte');
 
-		const unformatted = `
-			<script lang="ts" module>
-				import type {BlogPostData} from '${fuz_blog_import_path}/blog.ts';
-
-				export const post = {
-					title: ${JSON.stringify(title)},
-					slug: '${slug}',
-					date_published: '${date}',
-					date_modified: '${date}',
-					summary: 'todo',
-					tags: ['todo'],
-				} satisfies BlogPostData;
-			</script>
-
-			<script lang="ts">
-				import BlogPost from '${fuz_blog_import_path}/BlogPost.svelte';
-			</script>
-
-			<!-- This component is totally optional, you have full control over the page. -->
-			<BlogPost {post}>
-				<p>
-					TODO content goes here
-				</p>
-			</BlogPost>
-		`;
+		const scaffold = config.scaffold ?? scaffold_blog_post;
+		const unformatted = scaffold({title, slug, date, fuz_blog_import_path});
+		// TODO on the gro >=0.206 bump, switch to the current API: `format_file(unformatted, {lang: 'svelte'})` (sync)
 		const formatted = await format_file(unformatted, {parser: 'svelte'});
 
 		await mkdir(dirname(next_blog_post_path), {recursive: true});
@@ -82,6 +72,8 @@ export const task: Task<Args> = {
 
 		await invoke_task('gen');
 
-		log.info(`created empty blog post with index ${next_blog_post_id} at ${next_blog_post_path}`);
+		log.info(
+			`created ${config.dirname} post ${next_blog_post_id} (${slug}) at ${next_blog_post_path}`,
+		);
 	},
 };

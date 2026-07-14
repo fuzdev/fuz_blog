@@ -30,6 +30,11 @@
     "svelte": "^5",
     "zod": "^4"
   },
+  "peerDependenciesMeta": {
+    "@fuzdev/fuz_mastodon": {
+      "optional": true
+    }
+  },
   "dependencies": {
     "date-fns": "^4"
   },

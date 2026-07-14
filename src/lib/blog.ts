@@ -35,8 +35,57 @@ export interface MastodonBlogComments {
 	type: 'mastodon';
 }
 
-export interface BlogModule {
-	blog: BlogFeedData;
+/**
+ * A single blog's configuration in the consumer's `src/routes/blogs.ts` registry.
+ */
+export interface BlogConfig {
+	/**
+	 * Route directory under `src/routes`, and the blog's base path segment.
+	 */
+	dirname: string;
+
+	/**
+	 * Feed-level metadata. Post URLs derive from `home_page_url`,
+	 * so set it to the blog's index page.
+	 */
+	feed: BlogFeedData;
+
+	/**
+	 * Generate a slug redirect route for each post.
+	 * When `false`, post URLs are the integer id paths.
+	 * @default true
+	 */
+	slug_routes?: boolean;
+
+	/**
+	 * Customizes the post file `gro post` scaffolds for this blog.
+	 * Defaults to `scaffold_blog_post`.
+	 */
+	scaffold?: (options: BlogPostScaffoldOptions) => string;
+}
+
+/**
+ * The options `gro post` passes to a `BlogConfig` `scaffold`.
+ */
+export interface BlogPostScaffoldOptions {
+	title: string;
+	slug: string;
+	/**
+	 * Used for both `date_published` and `date_modified`.
+	 */
+	date: string;
+	/**
+	 * Import specifier for fuz_blog modules -
+	 * `$lib` inside fuz_blog itself, `@fuzdev/fuz_blog` in consumers.
+	 */
+	fuz_blog_import_path: string;
+}
+
+/**
+ * The shape of the consumer's `src/routes/blogs.ts` module.
+ */
+export interface BlogsModule {
+	blogs: Array<BlogConfig>;
 }
 
 export interface BlogPostModule {
@@ -48,12 +97,15 @@ export type BlogPostId = Flavored<number, 'BlogPostId'>;
 
 export interface BlogPostItem extends BlogPostData {
 	/**
-	 * Blog post path with `blog_post_id`.
+	 * Absolute URL to the post keyed by `blog_post_id`
+	 * (e.g. `https://example.com/blog/1`), also used as the feed entry id.
 	 */
 	id: string;
 
 	/**
-	 * Blog post path with `slug`.
+	 * Absolute URL to the post keyed by `slug`
+	 * (e.g. `https://example.com/blog/my-post`).
+	 * Equals `id` when the blog's `slug_routes` is `false`.
 	 */
 	url: string;
 
