@@ -32,13 +32,17 @@ export const task: Task<Args> = {
 		if (!id) {
 			throw new TaskError('post id is required');
 		}
+		const blog_post_id = Number(id);
+		if (!Number.isInteger(blog_post_id) || blog_post_id < 1) {
+			throw new TaskError(`post id must be a positive integer, got ${JSON.stringify(id)}`);
+		}
 
 		const dir = process.cwd();
 
 		const {blogs} = await load_blogs_module(dir);
 		const config = resolve_blog_config(blogs, blog_dirname);
 
-		await update_blog_post({dir, config, blog_post_id: Number(id), date});
+		await update_blog_post({dir, config, blog_post_id, date});
 
 		await invoke_task('gen');
 	},

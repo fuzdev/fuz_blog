@@ -13,7 +13,7 @@ import type {
 } from './blog.ts';
 
 // Node-only helpers for the `gro post`/`gro gen` build tooling. The pure blog
-// logic (`resolve_blog_config`, `resolve_blog_post_item`) lives in `blog.ts` so
+// logic (`resolve_blog_config`, `resolve_blog_feed_item`) lives in `blog.ts` so
 // it stays free of node and gro imports.
 
 /**
@@ -41,7 +41,7 @@ export const scaffold_blog_post = (options: BlogPostScaffoldOptions): string => 
 	const {title, slug, date, fuz_blog_import_path} = options;
 	return `
 		<script lang="ts" module>
-			import type {BlogPostData} from '${fuz_blog_import_path}/blog.ts';
+			import type {BlogPostMetadata} from '${fuz_blog_import_path}/blog.ts';
 
 			export const post = {
 				title: ${JSON.stringify(title)},
@@ -50,7 +50,7 @@ export const scaffold_blog_post = (options: BlogPostScaffoldOptions): string => 
 				date_modified: '${date}',
 				summary: 'todo',
 				tags: ['todo'],
-			} satisfies BlogPostData;
+			} satisfies BlogPostMetadata;
 		</script>
 
 		<script lang="ts">
@@ -89,7 +89,11 @@ export const load_blog_post_modules = (
 	blog_dir: string,
 	blog_post_ids: Array<BlogPostId>,
 ): Promise<Array<BlogPostModule>> =>
-	Promise.all(blog_post_ids.map((item) => import(join(blog_dir, item.toString(), '+page.svelte'))));
+	Promise.all(
+		blog_post_ids.map(
+			(blog_post_id) => import(join(blog_dir, blog_post_id.toString(), '+page.svelte')),
+		),
+	);
 
 export const to_next_blog_post_id = (blog_post_ids: Array<BlogPostId>): BlogPostId => {
 	const last = blog_post_ids.at(-1);

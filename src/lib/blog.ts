@@ -1,40 +1,46 @@
 import type {Component} from 'svelte';
-import type {Flavored, OmitStrict} from '@fuzdev/fuz_util/types.ts';
+import type {Flavored} from '@fuzdev/fuz_util/types.ts';
 import {strip_end} from '@fuzdev/fuz_util/string.ts';
 import {create_context} from '@fuzdev/fuz_ui/context_helpers.ts';
+import {z} from 'zod';
 
-import type {Feed} from './feed.ts';
-
-// TODO inconsistent naming with `BlogPostData` and `BlogPostItem`,
-// consider `BlogItem` or `BlogFeedItem`?
-// maybe `Metadata` instead of `Data` in both cases?
-// also think about `BlogFeedItem` instead of `BlogPostItem`
-export type BlogFeedData = OmitStrict<Feed, 'items'>;
-
-export interface BlogFeed extends Feed {
-	items: Array<BlogPostItem>;
-}
+import {Feed} from './feed.ts';
 
 /**
- * The author-defined data for each post.
+ * A feed's metadata, without its `items`.
  */
-export interface BlogPostData {
-	title: string;
-	slug: string;
-	date_published: string; // TODO maybe calculated instead of manually defined?
-	date_modified: string; // TODO maybe calculated instead of manually defined?
-	summary: string;
-	tags?: Array<string>;
-	comments?: BlogComments;
-}
+export const BlogFeedMetadata = Feed.omit({items: true});
+export type BlogFeedMetadata = z.infer<typeof BlogFeedMetadata>;
+
+export const MastodonBlogComments = z.strictObject({
+	url: z.string(),
+	type: z.literal('mastodon'),
+});
+export type MastodonBlogComments = z.infer<typeof MastodonBlogComments>;
 
 // TODO support other comment providers
-export type BlogComments = MastodonBlogComments;
+export const BlogComments = MastodonBlogComments;
+export type BlogComments = z.infer<typeof BlogComments>;
 
-export interface MastodonBlogComments {
-	url: string;
-	type: 'mastodon';
-}
+// Shared metadata fields, reused by the loose author input (`BlogPostMetadata`)
+// and the strict feed entry (`BlogFeedItem`).
+const blog_post_metadata_shape = {
+	title: z.string(),
+	slug: z.string(),
+	date_published: z.iso.datetime(), // TODO maybe calculated instead of manually defined?
+	date_modified: z.iso.datetime(), // TODO maybe calculated instead of manually defined?
+	summary: z.string(),
+	tags: z.array(z.string()).optional(),
+	comments: BlogComments.optional(),
+};
+
+/**
+ * The author-defined metadata for each post. Loose so a consumer can add its own
+ * fields (e.g. an autoblog's `model`); the extras stay on the page's `post` and
+ * do not reach the generated `BlogFeed` (see `resolve_blog_feed_item`).
+ */
+export const BlogPostMetadata = z.looseObject(blog_post_metadata_shape);
+export type BlogPostMetadata = z.infer<typeof BlogPostMetadata>;
 
 /**
  * A single blog's configuration in the consumer's `src/routes/blogs.ts` registry.
@@ -49,7 +55,7 @@ export interface BlogConfig {
 	 * Feed-level metadata. Post URLs derive from `home_page_url`,
 	 * so set it to the blog's index page.
 	 */
-	feed: BlogFeedData;
+	feed: BlogFeedMetadata;
 
 	/**
 	 * Generate a slug redirect route for each post.
@@ -90,33 +96,38 @@ export interface BlogsModule {
 }
 
 export interface BlogPostModule {
-	post: BlogPostData;
+	post: BlogPostMetadata;
 	default: Component<any>; // TODO types
 }
 
 export type BlogPostId = Flavored<number, 'BlogPostId'>;
 
-export interface BlogPostItem extends BlogPostData {
-	/**
-	 * Absolute URL to the post keyed by `blog_post_id`
-	 * (e.g. `https://example.com/blog/1`), also used as the feed entry id.
-	 */
-	id: string;
+/**
+ * A feed entry, derived from a `BlogPostMetadata` by `resolve_blog_feed_item`.
+ * Strict, so a leaked consumer field fails the generated feed's validation.
+ */
+export const BlogFeedItem = z.strictObject({
+	id: z.string().meta({
+		description:
+			'absolute URL to the post keyed by `blog_post_id` (e.g. `https://example.com/blog/1`), also the feed entry id',
+	}),
+	url: z.url().meta({
+		description:
+			'absolute URL to the post keyed by `slug` (e.g. `https://example.com/blog/my-post`); equals `id` when the blog’s `slug_routes` is `false`',
+	}),
+	pathname: z.string().meta({
+		description: 'app-relative path to the post (e.g. `/blog/my-post`), for in-app links',
+	}),
+	blog_post_id: z.number().meta({description: 'incrementing 1-based integer'}), // TODO maybe random?
+	...blog_post_metadata_shape,
+	tags: z.array(z.string()), // required in the feed entry
+});
+export type BlogFeedItem = z.infer<typeof BlogFeedItem>;
 
-	/**
-	 * Absolute URL to the post keyed by `slug`
-	 * (e.g. `https://example.com/blog/my-post`).
-	 * Equals `id` when the blog's `slug_routes` is `false`.
-	 */
-	url: string;
-
-	/**
-	 * Incrementing 1-based integer.
-	 */
-	blog_post_id: BlogPostId; // TODO maybe random?
-
-	tags: Array<string>; // required
-}
+export const BlogFeed = BlogFeedMetadata.extend({
+	items: z.array(BlogFeedItem),
+});
+export type BlogFeed = z.infer<typeof BlogFeed>;
 
 export const blog_feed_context = create_context<BlogFeed>();
 
@@ -140,8 +151,8 @@ export const resolve_blog_config = (
 };
 
 /**
- * Derives a `BlogPostItem` (the feed entry) from a post and its blog's
- * `home_page_url`. Emits only `BlogPostItem` fields - a consumer's extra post
+ * Derives a `BlogFeedItem` (the feed entry) from a post and its blog's
+ * `home_page_url`. Emits only `BlogFeedItem` fields - a consumer's extra post
  * metadata stays on the page's `post` for its component to render, and does not
  * leak into the typed generated feed.
  * @param blog_post_id - the post's incrementing 1-based id
@@ -149,18 +160,22 @@ export const resolve_blog_config = (
  * @param post - the author-defined post metadata
  * @param options - `slug_routes: false` makes `url` the integer-id `id`
  */
-export const resolve_blog_post_item = (
+export const resolve_blog_feed_item = (
 	blog_post_id: BlogPostId,
 	home_page_url: string,
-	post: BlogPostData,
+	post: BlogPostMetadata,
 	options?: {slug_routes?: boolean},
-): BlogPostItem => {
+): BlogFeedItem => {
 	const base = strip_end(home_page_url, '/');
 	const id = base + '/' + blog_post_id;
+	// without slug routes, posts are addressed by their integer id
+	const url = (options?.slug_routes ?? true) ? base + '/' + post.slug : id;
+	// copy fields explicitly - this is the strip seam; spreading `...post` would
+	// leak a consumer's extra metadata into the typed feed (see the TSDoc above)
 	return {
 		id,
-		// without slug routes, posts are addressed by their integer id
-		url: (options?.slug_routes ?? true) ? base + '/' + post.slug : id,
+		url,
+		pathname: new URL(url).pathname,
 		blog_post_id,
 		title: post.title,
 		slug: post.slug,

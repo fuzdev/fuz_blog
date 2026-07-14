@@ -1,10 +1,11 @@
 import type {Gen} from '@fuzdev/gro/gen.ts';
 import {join} from 'node:path';
 import {package_json_load} from '@fuzdev/gro/package_json.ts';
+import {z} from 'zod';
 
 import {create_atom_feed} from './feed.ts';
 import {collect_blog_post_ids, load_blog_post_modules, load_blogs_module} from './blog_helpers.ts';
-import {resolve_blog_post_item, type BlogFeed} from './blog.ts';
+import {resolve_blog_feed_item, BlogPostMetadata, BlogFeed} from './blog.ts';
 
 /** @nodocs */
 export const gen: Gen = async ({origin_path}) => {
@@ -28,16 +29,25 @@ export const gen: Gen = async ({origin_path}) => {
 
 		const modules = await load_blog_post_modules(blog_dir, blog_post_ids);
 
-		// TODO zod schema validation including parsing the status context url (with zod?)
-		// for (const mod of modules) {
-		// 	validate_blog_post(mod.post)
-		// }
+		// loose input: validate the author metadata (extras pass through)
+		const items = modules.map((mod, i) => {
+			const parsed = BlogPostMetadata.safeParse(mod.post);
+			if (!parsed.success) {
+				throw Error(
+					`invalid post metadata at ${dirname}/${i + 1}: ${z.prettifyError(parsed.error)}`,
+				);
+			}
+			return resolve_blog_feed_item(i + 1, blog.home_page_url, parsed.data, {slug_routes});
+		});
 
-		const items = modules.map((mod, i) =>
-			resolve_blog_post_item(i + 1, blog.home_page_url, mod.post, {slug_routes}),
-		);
-
-		const feed: BlogFeed = {...blog, items};
+		// strict output: a leaked field or malformed entry fails here, at gen time
+		const parsed_feed = BlogFeed.safeParse({...blog, items});
+		if (!parsed_feed.success) {
+			throw Error(
+				`generated ${dirname} feed failed validation: ${z.prettifyError(parsed_feed.error)}`,
+			);
+		}
+		const feed: BlogFeed = parsed_feed.data;
 
 		outputs.push({
 			filename: join(dir, 'static', dirname, 'feed.xml'),

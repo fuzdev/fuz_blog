@@ -13,7 +13,10 @@ export const Args = z
 			.string()
 			.meta({description: 'dirname of the target blog, defaulting to the first registered'})
 			.optional(),
-		date: z.string().meta({description: "the post's date_published"}).optional(),
+		date: z
+			.string()
+			.meta({description: "the post's date, used for both date_published and date_modified"})
+			.optional(),
 	})
 	.strict();
 export type Args = z.infer<typeof Args>;

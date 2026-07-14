@@ -98,7 +98,7 @@ fuz_blog is a **blog template and library**:
 ```
 src/
 ├── lib/                    # exportable library code
-│   ├── blog.ts             # types, blog_feed_context, resolve_blog_config, resolve_blog_post_item
+│   ├── blog.ts             # types, blog_feed_context, resolve_blog_config, resolve_blog_feed_item
 │   ├── blog_helpers.ts     # node build helpers: load_blogs_module, collect_blog_post_ids, create_blog_post
 │   ├── blog.gen.ts         # generates feed.xml, feed.ts, slug routes
 │   ├── feed.ts             # Feed, FeedItem types, create_atom_feed
@@ -133,22 +133,24 @@ human-readable URLs without path coupling.
 **BlogPostId**: Uses `Flavored<number, 'BlogPostId'>` for type-safe post IDs
 that remain compatible with plain numbers.
 
-**BlogPostData**: Author-defined metadata exported from each post's
+**BlogPostMetadata**: Author-defined metadata exported from each post's
 `<script module>`. Fields: `title`, `slug`, `date_published`, `date_modified`,
-`summary`, `tags?`, `comments?`.
+`summary`, `tags?`, `comments?`. A loose Zod schema, so a consumer can add its
+own fields (they stay on the page's `post` and never reach the feed).
 
-**BlogPostItem**: Extended version with computed fields (`id`, `url`,
-`blog_post_id`) generated during `gro gen`.
+**BlogFeedItem**: The strict feed entry, with computed fields (`id`, `url`,
+`pathname`, `blog_post_id`) derived during `gro gen`.
 
-**BlogFeed**: Complete feed structure inheriting from Feed interface, provided
-via `blog_feed_context`.
+**BlogFeed**: Complete feed structure extending `Feed`, provided via
+`blog_feed_context`. Zod-validated at gen time (strict), so a malformed post or
+a leaked field fails `gro gen`.
 
 ### Code generation flow
 
 `blog.gen.ts` runs during `gro gen`:
 
 1. Scans `/src/routes/blog/` for sequential numeric directories (1, 2, 3...)
-2. Loads each post's `BlogPostData` from module exports
+2. Loads and validates each post's `BlogPostMetadata` from module exports
 3. Generates three outputs:
    - `/static/blog/feed.xml` - Atom feed for RSS readers
    - `/src/routes/blog/feed.ts` - serialized BlogFeed object for runtime
@@ -159,10 +161,10 @@ via `blog_feed_context`.
 
 types and data:
 
-- `blog.ts` - `BlogPostData`, `BlogPostItem`, `BlogPostId`, `BlogFeed`,
+- `blog.ts` - `BlogPostMetadata`, `BlogFeedItem`, `BlogPostId`, `BlogFeed`,
   `BlogConfig`, `BlogComments`, `blog_feed_context`, and the pure
-  `resolve_blog_config()` / `resolve_blog_post_item()`
-- `feed.ts` - `Feed`, `FeedItem` interfaces (JSON Feed 1.1 compatible),
+  `resolve_blog_config()` / `resolve_blog_feed_item()`
+- `feed.ts` - `Feed`, `FeedItem` Zod schemas (JSON Feed 1.1 compatible),
   `create_atom_feed()`
 - `blog_helpers.ts` - node build helpers: `load_blogs_module()`,
   `collect_blog_post_ids()`, `load_blog_post_modules()`, `create_blog_post()`,

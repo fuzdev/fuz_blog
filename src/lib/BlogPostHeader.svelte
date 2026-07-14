@@ -1,11 +1,11 @@
 <script lang="ts">
 	import FeedItemDate from './FeedItemDate.svelte';
-	import type {BlogPostItem} from './blog.ts';
+	import type {BlogFeedItem} from './blog.ts';
 
 	const {
 		item,
 	}: {
-		item: BlogPostItem;
+		item: BlogFeedItem;
 	} = $props();
 </script>
 

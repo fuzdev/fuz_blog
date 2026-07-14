@@ -3,7 +3,7 @@
 	import type {Snippet} from 'svelte';
 
 	import BlogPostHeader from './BlogPostHeader.svelte';
-	import {blog_feed_context, type BlogPostData, type BlogPostItem} from './blog.ts';
+	import {blog_feed_context, type BlogPostMetadata, type BlogFeedItem} from './blog.ts';
 
 	const {
 		post,
@@ -14,24 +14,24 @@
 		comments,
 		children,
 	}: {
-		post: BlogPostData;
+		post: BlogPostMetadata;
 		/**
 		 * The resolved feed item. Defaults to looking `post.slug` up in
 		 * `blog_feed_context`; pass it explicitly to skip the context.
 		 */
-		item?: BlogPostItem;
+		item?: BlogFeedItem;
 		attrs?: SvelteHTMLElements['article'] | undefined;
 		/**
 		 * Renders after `BlogPostHeader`, e.g. for post provenance.
 		 */
-		meta?: Snippet<[item: BlogPostItem]>;
+		meta?: Snippet<[item: BlogFeedItem]>;
 		footer?: Snippet;
 		/**
 		 * Renders after `footer`, usually with `BlogPostComments`.
 		 * Importing `BlogPostComments.svelte` is what opts into the
 		 * `@fuzdev/fuz_mastodon` peer dependency.
 		 */
-		comments?: Snippet<[item: BlogPostItem]>;
+		comments?: Snippet<[item: BlogFeedItem]>;
 		children: Snippet;
 	} = $props();
 

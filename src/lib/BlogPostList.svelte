@@ -1,5 +1,6 @@
 <script lang="ts">
 	import {resolve} from '$app/paths';
+	import type {Pathname} from '$app/types';
 
 	import FeedItemDate from './FeedItemDate.svelte';
 	import type {BlogFeed} from './blog.ts';
@@ -15,7 +16,8 @@
 	<ol class="panel" reversed>
 		{#each items as item (item.id)}
 			<li class="blog-card">
-				<a href={resolve(new URL(item.url).pathname as any)}>{item.title}</a>
+				<!-- every post `pathname` is a literal app route (numeric or slug) -->
+				<a href={resolve(item.pathname as Pathname)}>{item.title}</a>
 				<div class="date"><FeedItemDate {item} /></div>
 			</li>
 		{:else}
