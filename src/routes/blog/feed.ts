@@ -13,6 +13,9 @@ export const feed: BlogFeed = {
 	atom: {feed_url: 'https://blog.fuz.dev/blog/feed.xml'},
 	items: [
 		{
+			id: 'https://blog.fuz.dev/blog/1',
+			url: 'https://blog.fuz.dev/blog/hello-fuz-blog',
+			blog_post_id: 1,
 			title: 'Hello fuz_blog',
 			slug: 'hello-fuz-blog',
 			date_published: '2024-07-10T16:04:49.688Z',
@@ -20,9 +23,6 @@ export const feed: BlogFeed = {
 			summary: 'fuz_blog is now a reusable library',
 			tags: ['blog software', 'sveltekit'],
 			comments: {url: 'https://fosstodon.org/@ryanatkn/114422499177310600', type: 'mastodon'},
-			id: 'https://blog.fuz.dev/blog/1',
-			url: 'https://blog.fuz.dev/blog/hello-fuz-blog',
-			blog_post_id: 1,
 		},
 	],
 };

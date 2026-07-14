@@ -40,14 +40,6 @@ describe('resolve_blog_post_item', () => {
 		const item = resolve_blog_post_item(1, 'https://blog.fuz.dev/blog', {...post, comments});
 		assert.deepEqual(item.comments, comments);
 	});
-
-	test('preserves extra fields from consumer post types', () => {
-		const item = resolve_blog_post_item(1, 'https://blog.fuz.dev/blog', {
-			...post,
-			model: 'Claude Fable 5',
-		} as BlogPostData & {model: string});
-		assert.equal((item as {model?: string}).model, 'Claude Fable 5');
-	});
 });
 
 // The blog listing derives each post's route path with `new URL(item.url).pathname`.

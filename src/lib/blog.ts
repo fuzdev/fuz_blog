@@ -141,8 +141,9 @@ export const resolve_blog_config = (
 
 /**
  * Derives a `BlogPostItem` (the feed entry) from a post and its blog's
- * `home_page_url`. Preserves any extra fields on `post` beyond `BlogPostData`,
- * so consumer post types flow through to the generated feed.
+ * `home_page_url`. Emits only `BlogPostItem` fields - a consumer's extra post
+ * metadata stays on the page's `post` for its component to render, and does not
+ * leak into the typed generated feed.
  * @param options - `slug_routes: false` makes `url` the integer-id `id`
  */
 export const resolve_blog_post_item = (
@@ -153,13 +154,17 @@ export const resolve_blog_post_item = (
 ): BlogPostItem => {
 	const base = strip_end(home_page_url, '/');
 	const id = base + '/' + blog_post_id;
-	// without slug routes, posts are addressed by their integer id
-	const url = (options?.slug_routes ?? true) ? base + '/' + post.slug : id;
 	return {
-		...post,
 		id,
-		url,
+		// without slug routes, posts are addressed by their integer id
+		url: (options?.slug_routes ?? true) ? base + '/' + post.slug : id,
 		blog_post_id,
+		title: post.title,
+		slug: post.slug,
+		date_published: post.date_published,
+		date_modified: post.date_modified,
+		summary: post.summary,
 		tags: post.tags ?? [],
+		comments: post.comments,
 	};
 };
