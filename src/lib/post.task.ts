@@ -1,18 +1,9 @@
 import {TaskError, type Task} from '@fuzdev/gro';
 import {z} from 'zod';
-import {format_file} from '@fuzdev/gro/format_file.ts';
-import {mkdir, writeFile} from 'node:fs/promises';
-import {dirname, join} from 'node:path';
 import {package_json_load} from '@fuzdev/gro/package_json.ts';
-import {slugify} from '@fuzdev/fuz_util/path.ts';
 
-import {
-	collect_blog_post_ids,
-	load_blogs_module,
-	resolve_blog_config,
-	scaffold_blog_post,
-	to_next_blog_post_id,
-} from './blog_helpers.ts';
+import {create_blog_post, load_blogs_module} from './blog_helpers.ts';
+import {resolve_blog_config} from './blog.ts';
 
 /** @nodocs */
 export const Args = z
@@ -41,39 +32,26 @@ export const task: Task<Args> = {
 		if (!raw_title) {
 			throw new TaskError('post title is required, e.g. `gro post "Hello world"`');
 		}
-		const title = raw_title.trim();
-		const slug = slugify(title);
+
+		const dir = process.cwd();
+
+		const {blogs} = await load_blogs_module(dir);
+		const config = resolve_blog_config(blogs, blog_dirname);
 
 		const package_json = await package_json_load();
 		const fuz_blog_import_path =
 			package_json.name === '@fuzdev/fuz_blog' ? '$lib' : '@fuzdev/fuz_blog';
 
-		const dir = process.cwd();
-		const routes_path = 'src/routes'; // TODO read from SvelteKit config;
-
-		const {blogs} = await load_blogs_module(dir);
-		const config = resolve_blog_config(blogs, blog_dirname);
-
-		const blog_dir = join(dir, routes_path, config.dirname);
-
-		const blog_post_ids = collect_blog_post_ids(blog_dir);
-
-		const next_blog_post_id = to_next_blog_post_id(blog_post_ids);
-
-		const next_blog_post_path = join(blog_dir, next_blog_post_id + '/+page.svelte');
-
-		const scaffold = config.scaffold ?? scaffold_blog_post;
-		const unformatted = scaffold({title, slug, date, fuz_blog_import_path});
-		// TODO on the gro >=0.206 bump, switch to the current API: `format_file(unformatted, {lang: 'svelte'})` (sync)
-		const formatted = await format_file(unformatted, {parser: 'svelte'});
-
-		await mkdir(dirname(next_blog_post_path), {recursive: true});
-		await writeFile(next_blog_post_path, formatted, 'utf8');
+		const {blog_post_id, path, slug} = await create_blog_post({
+			dir,
+			config,
+			title: raw_title.trim(),
+			date,
+			fuz_blog_import_path,
+		});
 
 		await invoke_task('gen');
 
-		log.info(
-			`created ${config.dirname} post ${next_blog_post_id} (${slug}) at ${next_blog_post_path}`,
-		);
+		log.info(`created ${config.dirname} post ${blog_post_id} (${slug}) at ${path}`);
 	},
 };

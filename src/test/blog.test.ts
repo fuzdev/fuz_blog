@@ -1,7 +1,12 @@
 import {assert, describe, test} from 'vitest';
 
-import {resolve_blog_config, resolve_blog_post_item} from '$lib/blog_helpers.ts';
-import type {BlogConfig, BlogFeedData, BlogPostData} from '$lib/blog.ts';
+import {
+	resolve_blog_config,
+	resolve_blog_post_item,
+	type BlogConfig,
+	type BlogFeedData,
+	type BlogPostData,
+} from '$lib/blog.ts';
 
 const post: BlogPostData = {
 	title: 'Hello Fuz Blog',
@@ -35,6 +40,14 @@ describe('resolve_blog_post_item', () => {
 		const item = resolve_blog_post_item(1, 'https://blog.fuz.dev/blog', {...post, comments});
 		assert.deepEqual(item.comments, comments);
 	});
+
+	test('preserves extra fields from consumer post types', () => {
+		const item = resolve_blog_post_item(1, 'https://blog.fuz.dev/blog', {
+			...post,
+			model: 'Claude Fable 5',
+		} as BlogPostData & {model: string});
+		assert.equal((item as {model?: string}).model, 'Claude Fable 5');
+	});
 });
 
 // The blog listing derives each post's route path with `new URL(item.url).pathname`.
@@ -48,10 +61,9 @@ describe('post route pathname', () => {
 	});
 
 	test('without slug routes, the url is the integer id path', () => {
-		const item = resolve_blog_post_item(1, 'https://blog.fuz.dev/blog', post);
-		// `blog.gen.ts` sets `url` to `id` when a blog opts out of slug routes
-		const without_slug_routes = {...item, url: item.id};
-		assert.equal(new URL(without_slug_routes.url).pathname, '/blog/1');
+		const item = resolve_blog_post_item(1, 'https://blog.fuz.dev/blog', post, {slug_routes: false});
+		assert.equal(item.url, item.id);
+		assert.equal(new URL(item.url).pathname, '/blog/1');
 	});
 });
 

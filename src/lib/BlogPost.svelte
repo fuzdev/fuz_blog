@@ -7,13 +7,24 @@
 
 	const {
 		post,
+		item: item_prop,
 		attrs,
+		meta,
 		footer,
 		comments,
 		children,
 	}: {
 		post: BlogPostData;
+		/**
+		 * The resolved feed item. Defaults to looking `post.slug` up in
+		 * `blog_feed_context`; pass it explicitly to skip the context.
+		 */
+		item?: BlogPostItem;
 		attrs?: SvelteHTMLElements['article'] | undefined;
+		/**
+		 * Renders in the header after `BlogPostHeader`, e.g. for post provenance.
+		 */
+		meta?: Snippet<[item: BlogPostItem]>;
 		footer?: Snippet;
 		/**
 		 * Renders after `footer`, usually with `BlogPostComments`.
@@ -24,10 +35,10 @@
 		children: Snippet;
 	} = $props();
 
-	const feed = blog_feed_context.get();
-
 	// TODO maybe clean up the type vs `post`
-	const item = feed.items.find((i) => i.slug === post.slug);
+	const item = $derived(
+		item_prop ?? blog_feed_context.get_maybe()?.items.find((i) => i.slug === post.slug),
+	);
 </script>
 
 <svelte:head>
@@ -39,6 +50,7 @@
 	{#if item}
 		<article {...attrs}>
 			<BlogPostHeader {item} />
+			{@render meta?.(item)}
 			{@render children()}
 			{@render footer?.()}
 			{@render comments?.(item)}

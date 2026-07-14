@@ -58,6 +58,14 @@ Comments are opt-in: `BlogPost.svelte` is mastodon-free and takes a `comments`
 snippet; `BlogPostComments.svelte` carries the Mastodon rendering, and
 importing it is what requires the optional `@fuzdev/fuz_mastodon` peer.
 
+Wiring in a consumer: gro discovers `*.gen.ts`/`*.task.ts` only in the local
+`src/lib`, so a consuming project keeps thin local files that reuse fuz_blog's
+logic — `src/lib/blog.gen.ts` can be
+`export {gen} from '@fuzdev/fuz_blog/blog.gen.ts'`, and `src/lib/post.task.ts`
+can re-export or wrap fuz_blog's task. To scaffold a custom post shape with
+extra flags (e.g. a `--model` field), write a small task that parses its own
+`Args` and calls `create_blog_post` with its own `scaffold` closure.
+
 ## Key dependencies
 
 - Svelte 5 - component framework
@@ -90,12 +98,14 @@ fuz_blog is a **blog template and library**:
 ```
 src/
 ├── lib/                    # exportable library code
-│   ├── blog.ts             # BlogPostData, BlogFeed types, blog_feed_context
-│   ├── blog_helpers.ts     # resolve_blog_post_item, collect_blog_post_ids
+│   ├── blog.ts             # types, blog_feed_context, resolve_blog_config, resolve_blog_post_item
+│   ├── blog_helpers.ts     # node build helpers: load_blogs_module, collect_blog_post_ids, create_blog_post
 │   ├── blog.gen.ts         # generates feed.xml, feed.ts, slug routes
 │   ├── feed.ts             # Feed, FeedItem types, create_atom_feed
 │   ├── util.ts             # format_date helper
 │   ├── BlogPost.svelte     # main post wrapper component
+│   ├── BlogPostComments.svelte # opt-in Mastodon comments (pulls the fuz_mastodon peer)
+│   ├── BlogPostList.svelte # prop-driven post listing (takes a `feed`)
 │   ├── BlogPostHeader.svelte
 │   ├── FeedItemDate.svelte # date formatting component
 │   ├── HashLink.svelte     # anchor link with hover icon
@@ -103,12 +113,13 @@ src/
 │   └── update_post.task.ts # gro update_post task
 ├── test/                   # test files (not co-located)
 └── routes/
+    ├── blogs.ts            # blogs registry (Array<BlogConfig>)
     ├── blog/
-    │   ├── blog.ts         # blog feed metadata (author, title, etc.)
     │   ├── feed.ts         # generated BlogFeed object
-    │   ├── +page.svelte    # blog listing page
+    │   ├── +layout.svelte  # sets blog_feed_context for this blog's subtree
+    │   ├── +page.svelte    # blog listing page (uses BlogPostList)
     │   ├── 1/+page.svelte  # numeric post routes
-    │   └── [slug]/         # generated slug routes (redirect to numeric)
+    │   └── hello-fuz-blog/ # generated slug routes (re-export the numeric route)
     └── docs/               # documentation pages
 ```
 
@@ -149,16 +160,20 @@ via `blog_feed_context`.
 types and data:
 
 - `blog.ts` - `BlogPostData`, `BlogPostItem`, `BlogPostId`, `BlogFeed`,
-  `BlogComments`, `blog_feed_context`
+  `BlogConfig`, `BlogComments`, `blog_feed_context`, and the pure
+  `resolve_blog_config()` / `resolve_blog_post_item()`
 - `feed.ts` - `Feed`, `FeedItem` interfaces (JSON Feed 1.1 compatible),
   `create_atom_feed()`
-- `blog_helpers.ts` - `resolve_blog_post_item()`, `collect_blog_post_ids()`,
-  `load_blog_post_modules()`
+- `blog_helpers.ts` - node build helpers: `load_blogs_module()`,
+  `collect_blog_post_ids()`, `load_blog_post_modules()`, `create_blog_post()`,
+  `scaffold_blog_post()`
 - `util.ts` - `format_date()` for consistent date formatting
 
 components:
 
-- `BlogPost.svelte` - main wrapper with header, content, and Mastodon comments
+- `BlogPost.svelte` - main post wrapper (header, `meta`, content, `footer`, `comments`)
+- `BlogPostComments.svelte` - opt-in Mastodon comments (pulls the fuz_mastodon peer)
+- `BlogPostList.svelte` - prop-driven post listing rendered from a `feed`
 - `BlogPostHeader.svelte` - title and metadata display
 - `FeedItemDate.svelte` - formatted date with "updated" indicator
 - `HashLink.svelte` - section anchor with hover-visible link icon
@@ -170,8 +185,8 @@ tasks:
 
 ### Svelte 5 patterns
 
-Components use Svelte 5 runes API with optional `Snippet` props (`footer`,
-`separator`) for customization. See `BlogPost.svelte` for the pattern.
+Components use Svelte 5 runes API with optional `Snippet` props (`meta`,
+`footer`, `comments`) for customization. See `BlogPost.svelte` for the pattern.
 
 ### Context system
 
@@ -180,7 +195,9 @@ Uses the standardized context pattern from fuz_ui:
 - `blog_feed_context` - provides `BlogFeed` data throughout the app
 - `mastodon_cache_context` - (from fuz_mastodon) optional dev cache for comments
 
-Set `blog_feed_context` in your root layout with the generated feed.
+Set `blog_feed_context` with the generated feed in the blog's `+layout.svelte`
+(per blog when there's more than one), or pass the feed/item directly as props
+to `BlogPostList` / `BlogPost`.
 
 ## Creating a blog post
 
@@ -223,8 +240,8 @@ accessible from the context menu for theme customization.
 
 - **Hard-coded `src/routes/` path** - Route scanning assumes standard SvelteKit
   structure
-- **Partial test coverage** - `src/test/blog_helpers.test.ts` covers the
-  post-item/URL and blog-config logic; most components and tasks are untested
+- **Partial test coverage** - `src/test/blog.test.ts` covers the post-item/URL
+  and blog-config logic; most components and tasks are untested
 
 ## Project standards
 

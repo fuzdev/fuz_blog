@@ -1,5 +1,6 @@
 import type {Component} from 'svelte';
 import type {Flavored, OmitStrict} from '@fuzdev/fuz_util/types.ts';
+import {strip_end} from '@fuzdev/fuz_util/string.ts';
 import {create_context} from '@fuzdev/fuz_ui/context_helpers.ts';
 
 import type {Feed} from './feed.ts';
@@ -118,3 +119,47 @@ export interface BlogPostItem extends BlogPostData {
 }
 
 export const blog_feed_context = create_context<BlogFeed>();
+
+/**
+ * Resolves a `BlogConfig` from the registry by its `dirname`,
+ * defaulting to the first registered blog when `dirname` is omitted.
+ * Throws when `dirname` matches no registered blog.
+ */
+export const resolve_blog_config = (
+	blogs: Array<BlogConfig>,
+	dirname: string | undefined,
+): BlogConfig => {
+	const config = dirname ? blogs.find((b) => b.dirname === dirname) : blogs[0];
+	if (!config) {
+		throw new Error(
+			`unknown blog ${JSON.stringify(dirname)}, expected one of: ` +
+				blogs.map((b) => b.dirname).join(', '),
+		);
+	}
+	return config;
+};
+
+/**
+ * Derives a `BlogPostItem` (the feed entry) from a post and its blog's
+ * `home_page_url`. Preserves any extra fields on `post` beyond `BlogPostData`,
+ * so consumer post types flow through to the generated feed.
+ * @param options - `slug_routes: false` makes `url` the integer-id `id`
+ */
+export const resolve_blog_post_item = (
+	blog_post_id: BlogPostId,
+	home_page_url: string,
+	post: BlogPostData,
+	options?: {slug_routes?: boolean},
+): BlogPostItem => {
+	const base = strip_end(home_page_url, '/');
+	const id = base + '/' + blog_post_id;
+	// without slug routes, posts are addressed by their integer id
+	const url = (options?.slug_routes ?? true) ? base + '/' + post.slug : id;
+	return {
+		...post,
+		id,
+		url,
+		blog_post_id,
+		tags: post.tags ?? [],
+	};
+};

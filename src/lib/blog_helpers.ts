@@ -1,19 +1,20 @@
-import {TaskError} from '@fuzdev/gro';
-import {strip_end} from '@fuzdev/fuz_util/string.ts';
-import {join} from 'node:path';
+import {format_file} from '@fuzdev/gro/format_file.ts';
+import {slugify} from '@fuzdev/fuz_util/path.ts';
+import {mkdir, writeFile} from 'node:fs/promises';
 import {existsSync} from 'node:fs';
+import {dirname, join} from 'node:path';
 
 import type {
 	BlogConfig,
 	BlogPostId,
-	BlogPostData,
-	BlogPostItem,
 	BlogPostModule,
 	BlogPostScaffoldOptions,
 	BlogsModule,
 } from './blog.ts';
 
-// TODO maybe move non-node stuff to `blog`, maybe rename this to `blog_fs_helpers`?
+// Node-only helpers for the `gro post`/`gro gen` build tooling. The pure blog
+// logic (`resolve_blog_config`, `resolve_blog_post_item`) lives in `blog.ts` so
+// it stays free of node and gro imports.
 
 /**
  * Loads the consumer's `src/routes/blogs.ts` registry.
@@ -30,25 +31,6 @@ export const load_blogs_module = async (dir: string): Promise<BlogsModule> => {
 		throw new Error(`expected ${path} to export a non-empty \`blogs\` array`);
 	}
 	return mod;
-};
-
-/**
- * Resolves a `BlogConfig` from the registry by its `dirname`,
- * defaulting to the first registered blog when `dirname` is omitted.
- * Throws a `TaskError` if `dirname` matches no registered blog.
- */
-export const resolve_blog_config = (
-	blogs: Array<BlogConfig>,
-	dirname: string | undefined,
-): BlogConfig => {
-	const config = dirname ? blogs.find((b) => b.dirname === dirname) : blogs[0];
-	if (!config) {
-		throw new TaskError(
-			`unknown blog ${JSON.stringify(dirname)}, expected one of: ` +
-				blogs.map((b) => b.dirname).join(', '),
-		);
-	}
-	return config;
 };
 
 /**
@@ -84,26 +66,6 @@ export const scaffold_blog_post = (options: BlogPostScaffoldOptions): string => 
 	`;
 };
 
-export const resolve_blog_post_item = (
-	blog_post_id: BlogPostId,
-	blog_url: string,
-	post: BlogPostData,
-): BlogPostItem => {
-	const final_blog_url = strip_end(blog_url, '/');
-	return {
-		id: final_blog_url + '/' + blog_post_id,
-		url: final_blog_url + '/' + post.slug,
-		blog_post_id,
-		title: post.title,
-		slug: post.slug,
-		date_published: post.date_published,
-		date_modified: post.date_modified,
-		summary: post.summary,
-		tags: post.tags ?? [],
-		comments: post.comments,
-	};
-};
-
 /**
  * Returns an array of all of the sequential blog post ids starting with 1.
  * When it fails to find the next id, the sequence ends.
@@ -136,3 +98,52 @@ export const to_next_blog_post_id = (blog_post_ids: Array<BlogPostId>): BlogPost
 
 export const to_blog_post_path = (blog_dir: string, blog_post_id: BlogPostId): string =>
 	join(blog_dir, blog_post_id + '/+page.svelte');
+
+export interface CreateBlogPostOptions {
+	/** The project root, usually `process.cwd()`. */
+	dir: string;
+	/** The target blog, e.g. from `resolve_blog_config`. */
+	config: BlogConfig;
+	/** The post title; the slug is derived from it. */
+	title: string;
+	/** ISO date used for both `date_published` and `date_modified`. */
+	date: string;
+	/** Import specifier for fuz_blog modules - `$lib` inside fuz_blog, `@fuzdev/fuz_blog` in consumers. */
+	fuz_blog_import_path: string;
+	/**
+	 * Overrides the scaffold for this call, taking precedence over
+	 * `config.scaffold`. Lets a consumer task close over its own args
+	 * (e.g. a `--model` flag) without widening `BlogPostScaffoldOptions`.
+	 */
+	scaffold?: (options: BlogPostScaffoldOptions) => string;
+	/** @default 'src/routes' */
+	routes_path?: string;
+}
+
+export interface CreatedBlogPost {
+	blog_post_id: BlogPostId;
+	/** Absolute path to the written `+page.svelte`. */
+	path: string;
+	slug: string;
+}
+
+/**
+ * Scaffolds and writes the next post file for `config`, returning its id, path,
+ * and slug. Does not run `gen` - callers invoke that afterward (see `post.task.ts`).
+ */
+export const create_blog_post = async (
+	options: CreateBlogPostOptions,
+): Promise<CreatedBlogPost> => {
+	const {dir, config, title, date, fuz_blog_import_path, routes_path = 'src/routes'} = options;
+	const slug = slugify(title);
+	const blog_dir = join(dir, routes_path, config.dirname);
+	const blog_post_id = to_next_blog_post_id(collect_blog_post_ids(blog_dir));
+	const path = join(blog_dir, blog_post_id + '/+page.svelte');
+	const scaffold = options.scaffold ?? config.scaffold ?? scaffold_blog_post;
+	const content = format_file(scaffold({title, slug, date, fuz_blog_import_path}), {
+		lang: 'svelte',
+	});
+	await mkdir(dirname(path), {recursive: true});
+	await writeFile(path, content, 'utf8');
+	return {blog_post_id, path, slug};
+};

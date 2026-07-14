@@ -48,7 +48,8 @@ export const blogs: Array<BlogConfig> = [
 ];`}
 		/>
 		<p>
-			To enable your generated <code>feed.xml</code>, include it as a <code>link</code> in your layout:
+			To enable your generated <code>feed.xml</code>, include it as a <code>link</code> in your
+			layout:
 		</p>
 		<Code
 			content={`<!-- src/routes/+layout.svelte -->

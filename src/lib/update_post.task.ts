@@ -3,7 +3,8 @@ import {existsSync, readFileSync, writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {z} from 'zod';
 
-import {load_blogs_module, resolve_blog_config} from './blog_helpers.ts';
+import {load_blogs_module} from './blog_helpers.ts';
+import {resolve_blog_config} from './blog.ts';
 
 /** @nodocs */
 export const Args = z

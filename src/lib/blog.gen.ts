@@ -3,13 +3,8 @@ import {join} from 'node:path';
 import {package_json_load} from '@fuzdev/gro/package_json.ts';
 
 import {create_atom_feed} from './feed.ts';
-import {
-	collect_blog_post_ids,
-	load_blog_post_modules,
-	load_blogs_module,
-	resolve_blog_post_item,
-} from './blog_helpers.ts';
-import type {BlogFeed} from './blog.ts';
+import {collect_blog_post_ids, load_blog_post_modules, load_blogs_module} from './blog_helpers.ts';
+import {resolve_blog_post_item, type BlogFeed} from './blog.ts';
 
 /** @nodocs */
 export const gen: Gen = async ({origin_path}) => {
@@ -38,12 +33,9 @@ export const gen: Gen = async ({origin_path}) => {
 		// 	validate_blog_post(mod.post)
 		// }
 
-		// `resolve_blog_post_item` strips a trailing slash off `home_page_url`
-		const items = modules.map((mod, i) => {
-			const item = resolve_blog_post_item(i + 1, blog.home_page_url, mod.post);
-			// without slug routes, posts are addressed by their integer id
-			return slug_routes ? item : {...item, url: item.id};
-		});
+		const items = modules.map((mod, i) =>
+			resolve_blog_post_item(i + 1, blog.home_page_url, mod.post, {slug_routes}),
+		);
 
 		const feed: BlogFeed = {...blog, items};
 
