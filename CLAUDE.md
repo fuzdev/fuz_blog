@@ -71,7 +71,7 @@ extra flags (e.g. a `--model` field), write a small task that parses its own
 - Svelte 5 - component framework
 - SvelteKit - application framework
 - date-fns - date formatting
-- fuz_css (@fuzdev/fuz_css) - CSS framework
+- fuz_css (@fuzdev/fuz_css) - semantic-first CSS framework and design system
 - fuz_ui (@fuzdev/fuz_ui) - UI components, docs system
 - fuz_mastodon (@fuzdev/fuz_mastodon) - Mastodon embedding for comments
 
@@ -255,6 +255,6 @@ accessible from the context menu for theme customization.
 
 ## Related projects
 
-- [`fuz_css`](../fuz_css/CLAUDE.md) - CSS framework
+- [`fuz_css`](../fuz_css/CLAUDE.md) - semantic-first CSS framework
 - [`fuz_ui`](../fuz_ui/CLAUDE.md) - UI components and docs system
 - [`fuz_mastodon`](../fuz_mastodon/CLAUDE.md) - Mastodon embedding
