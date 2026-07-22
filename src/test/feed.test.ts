@@ -1,6 +1,6 @@
-import {assert, describe, test} from 'vitest';
+import { assert, describe, test } from 'vitest';
 
-import {create_atom_feed, type Feed} from '$lib/feed.ts';
+import { create_atom_feed, type Feed } from '$lib/feed.ts';
 
 const feed: Feed = {
 	id: 'https://example.com/',
@@ -9,7 +9,7 @@ const feed: Feed = {
 	description: 'a <b> & c',
 	icon: 'https://example.com/icon.png',
 	favicon: 'https://example.com/favicon.png',
-	author: {name: 'A & B'},
+	author: { name: 'A & B' },
 	items: [
 		{
 			id: 'https://example.com/blog/1',
@@ -18,10 +18,10 @@ const feed: Feed = {
 			date_published: '2024-07-15T00:00:00.000Z',
 			date_modified: '2024-07-15T00:00:00.000Z',
 			summary: 'x < y & z',
-			tags: ['a & b'],
-		},
+			tags: ['a & b']
+		}
 	],
-	atom: {feed_url: 'https://example.com/blog/feed.xml'},
+	atom: { feed_url: 'https://example.com/blog/feed.xml' }
 };
 
 describe('create_atom_feed', () => {

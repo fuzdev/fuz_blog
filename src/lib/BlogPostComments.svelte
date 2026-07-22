@@ -1,13 +1,13 @@
 <script lang="ts">
-	import type {Snippet} from 'svelte';
+	import type { Snippet } from 'svelte';
 	import Toot from '@fuzdev/fuz_mastodon/Toot.svelte';
-	import {mastodon_cache_context} from '@fuzdev/fuz_mastodon/mastodon_cache.svelte.ts';
+	import { mastodon_cache_context } from '@fuzdev/fuz_mastodon/mastodon_cache.svelte.ts';
 
-	import type {BlogFeedItem} from './blog.ts';
+	import type { BlogFeedItem } from './blog.ts';
 
 	const {
 		item,
-		separator = default_separator,
+		separator = default_separator
 	}: {
 		item: BlogFeedItem;
 		separator?: Snippet;
@@ -30,7 +30,7 @@ peer dependency - `BlogPost.svelte` itself is mastodon-free. -->
 				url={item.comments.url}
 				include_replies
 				initial_autoload
-				reply_filter={(toot) => ({type: 'favourited_by', favourited_by: [toot.account.acct]})}
+				reply_filter={(toot) => ({ type: 'favourited_by', favourited_by: [toot.account.acct] })}
 				settings_storage_key="{item.slug}_comments_settings"
 				cache={cache?.data}
 			/>

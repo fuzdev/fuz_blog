@@ -1,10 +1,10 @@
 <script lang="ts">
 	import LibraryDetail from '@fuzdev/fuz_ui/LibraryDetail.svelte';
-	import {Library, library_context} from '@fuzdev/fuz_ui/library.svelte.ts';
-	import {library_json} from '$routes/library.ts';
+	import { Library, library_context } from '@fuzdev/fuz_ui/library.svelte.ts';
+	import { library_json } from '$routes/library.ts';
 	import DocsFooter from '@fuzdev/fuz_ui/DocsFooter.svelte';
-	import {site_context} from '@fuzdev/fuz_ui/site.svelte.ts';
-	import {FUZ_DEV_URL} from '@fuzdev/fuz_ui/constants.ts';
+	import { site_context } from '@fuzdev/fuz_ui/site.svelte.ts';
+	import { FUZ_DEV_URL } from '@fuzdev/fuz_ui/constants.ts';
 	import EcosystemLinksPanel from '@fuzdev/fuz_ui/EcosystemLinksPanel.svelte';
 	import Breadcrumb from '@fuzdev/fuz_ui/Breadcrumb.svelte';
 

@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type {Snippet} from 'svelte';
+	import type { Snippet } from 'svelte';
 
 	// TODO maybe move to fuz_ui
 
 	const {
 		slug,
-		children,
+		children
 	}: {
 		slug: string;
 		children: Snippet;

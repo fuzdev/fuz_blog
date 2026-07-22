@@ -1,4 +1,4 @@
-import type {BlogConfig} from '$lib/blog.ts';
+import type { BlogConfig } from '$lib/blog.ts';
 
 // TODO extract to fuz.config.ts?
 export const blogs: Array<BlogConfig> = [
@@ -14,11 +14,11 @@ export const blogs: Array<BlogConfig> = [
 			author: {
 				name: 'Ryan Atkinson',
 				url: 'https://www.ryanatkn.com/',
-				email: 'mail@ryanatkn.com',
+				email: 'mail@ryanatkn.com'
 			},
 			atom: {
-				feed_url: 'https://blog.fuz.dev/blog/feed.xml', // TODO source of truth?
-			},
-		},
-	},
+				feed_url: 'https://blog.fuz.dev/blog/feed.xml' // TODO source of truth?
+			}
+		}
+	}
 ];

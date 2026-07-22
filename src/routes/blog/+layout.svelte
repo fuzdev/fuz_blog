@@ -1,14 +1,14 @@
 <script lang="ts">
 	import Breadcrumb from '@fuzdev/fuz_ui/Breadcrumb.svelte';
-	import {DEV} from 'esm-env';
-	import type {Snippet} from 'svelte';
+	import { DEV } from 'esm-env';
+	import type { Snippet } from 'svelte';
 	import {
 		MastodonCache,
-		mastodon_cache_context,
+		mastodon_cache_context
 	} from '@fuzdev/fuz_mastodon/mastodon_cache.svelte.ts';
 
 	const {
-		children,
+		children
 	}: {
 		children: Snippet;
 	} = $props();
@@ -16,8 +16,8 @@
 	if (DEV) {
 		mastodon_cache_context.set(
 			new MastodonCache(
-				async () => (await import('./mastodon_dev_cache_data.ts')).mastodon_dev_cache_data,
-			),
+				async () => (await import('./mastodon_dev_cache_data.ts')).mastodon_dev_cache_data
+			)
 		);
 
 		// // To get the latest cache data, add these lines:

@@ -1,20 +1,20 @@
-import type {Component} from 'svelte';
-import type {Flavored} from '@fuzdev/fuz_util/types.ts';
-import {strip_end} from '@fuzdev/fuz_util/string.ts';
-import {create_context} from '@fuzdev/fuz_ui/context_helpers.ts';
-import {z} from 'zod';
+import type { Component } from 'svelte';
+import type { Flavored } from '@fuzdev/fuz_util/types.ts';
+import { strip_end } from '@fuzdev/fuz_util/string.ts';
+import { create_context } from '@fuzdev/fuz_ui/context_helpers.ts';
+import { z } from 'zod';
 
-import {Feed} from './feed.ts';
+import { Feed } from './feed.ts';
 
 /**
  * A feed's metadata, without its `items`.
  */
-export const BlogFeedMetadata = Feed.omit({items: true});
+export const BlogFeedMetadata = Feed.omit({ items: true });
 export type BlogFeedMetadata = z.infer<typeof BlogFeedMetadata>;
 
 export const MastodonBlogComments = z.strictObject({
 	url: z.string(),
-	type: z.literal('mastodon'),
+	type: z.literal('mastodon')
 });
 export type MastodonBlogComments = z.infer<typeof MastodonBlogComments>;
 
@@ -31,7 +31,7 @@ const blog_post_metadata_shape = {
 	date_modified: z.iso.datetime(), // TODO maybe calculated instead of manually defined?
 	summary: z.string(),
 	tags: z.array(z.string()).optional(),
-	comments: BlogComments.optional(),
+	comments: BlogComments.optional()
 };
 
 /**
@@ -109,23 +109,23 @@ export type BlogPostId = Flavored<number, 'BlogPostId'>;
 export const BlogFeedItem = z.strictObject({
 	id: z.string().meta({
 		description:
-			'absolute URL to the post keyed by `blog_post_id` (e.g. `https://example.com/blog/1`), also the feed entry id',
+			'absolute URL to the post keyed by `blog_post_id` (e.g. `https://example.com/blog/1`), also the feed entry id'
 	}),
 	url: z.url().meta({
 		description:
-			'absolute URL to the post keyed by `slug` (e.g. `https://example.com/blog/my-post`); equals `id` when the blog’s `slug_routes` is `false`',
+			'absolute URL to the post keyed by `slug` (e.g. `https://example.com/blog/my-post`); equals `id` when the blog’s `slug_routes` is `false`'
 	}),
 	pathname: z.string().meta({
-		description: 'app-relative path to the post (e.g. `/blog/my-post`), for in-app links',
+		description: 'app-relative path to the post (e.g. `/blog/my-post`), for in-app links'
 	}),
-	blog_post_id: z.number().meta({description: 'incrementing 1-based integer'}), // TODO maybe random?
+	blog_post_id: z.number().meta({ description: 'incrementing 1-based integer' }), // TODO maybe random?
 	...blog_post_metadata_shape,
-	tags: z.array(z.string()), // required in the feed entry
+	tags: z.array(z.string()) // required in the feed entry
 });
 export type BlogFeedItem = z.infer<typeof BlogFeedItem>;
 
 export const BlogFeed = BlogFeedMetadata.extend({
-	items: z.array(BlogFeedItem),
+	items: z.array(BlogFeedItem)
 });
 export type BlogFeed = z.infer<typeof BlogFeed>;
 
@@ -138,13 +138,13 @@ export const blog_feed_context = create_context<BlogFeed>();
  */
 export const resolve_blog_config = (
 	blogs: Array<BlogConfig>,
-	dirname: string | undefined,
+	dirname: string | undefined
 ): BlogConfig => {
 	const config = dirname ? blogs.find((b) => b.dirname === dirname) : blogs[0];
 	if (!config) {
 		throw new Error(
 			`unknown blog ${JSON.stringify(dirname)}, expected one of: ` +
-				blogs.map((b) => b.dirname).join(', '),
+				blogs.map((b) => b.dirname).join(', ')
 		);
 	}
 	return config;
@@ -164,7 +164,7 @@ export const resolve_blog_feed_item = (
 	blog_post_id: BlogPostId,
 	home_page_url: string,
 	post: BlogPostMetadata,
-	options?: {slug_routes?: boolean},
+	options?: { slug_routes?: boolean }
 ): BlogFeedItem => {
 	const base = strip_end(home_page_url, '/');
 	const id = base + '/' + blog_post_id;
@@ -183,6 +183,6 @@ export const resolve_blog_feed_item = (
 		date_modified: post.date_modified,
 		summary: post.summary,
 		tags: post.tags ?? [],
-		comments: post.comments,
+		comments: post.comments
 	};
 };

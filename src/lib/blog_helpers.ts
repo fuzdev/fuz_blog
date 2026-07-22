@@ -1,15 +1,15 @@
-import {format_file} from '@fuzdev/gro/format_file.ts';
-import {slugify} from '@fuzdev/fuz_util/path.ts';
-import {mkdir, readFile, writeFile} from 'node:fs/promises';
-import {existsSync} from 'node:fs';
-import {dirname, join} from 'node:path';
+import { format_file } from '@fuzdev/gro/format_file.ts';
+import { slugify } from '@fuzdev/fuz_util/path.ts';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 
 import type {
 	BlogConfig,
 	BlogPostId,
 	BlogPostModule,
 	BlogPostScaffoldOptions,
-	BlogsModule,
+	BlogsModule
 } from './blog.ts';
 
 // Node-only helpers for the `gro post`/`gro gen` build tooling. The pure blog
@@ -23,7 +23,7 @@ export const load_blogs_module = async (dir: string): Promise<BlogsModule> => {
 	const path = join(dir, 'src/routes/blogs.ts');
 	if (!existsSync(path)) {
 		throw new Error(
-			`expected a blogs registry at ${path} - export \`blogs: Array<BlogConfig>\` from it`,
+			`expected a blogs registry at ${path} - export \`blogs: Array<BlogConfig>\` from it`
 		);
 	}
 	const mod = (await import(path)) as BlogsModule; // TODO zod parse
@@ -38,7 +38,7 @@ export const load_blogs_module = async (dir: string): Promise<BlogsModule> => {
  * Override per-blog with `BlogConfig.scaffold`.
  */
 export const scaffold_blog_post = (options: BlogPostScaffoldOptions): string => {
-	const {title, slug, date, fuz_blog_import_path} = options;
+	const { title, slug, date, fuz_blog_import_path } = options;
 	return `
 		<script lang="ts" module>
 			import type {BlogPostMetadata} from '${fuz_blog_import_path}/blog.ts';
@@ -87,12 +87,12 @@ export const collect_blog_post_ids = (blog_dir: string): Array<BlogPostId> => {
 
 export const load_blog_post_modules = (
 	blog_dir: string,
-	blog_post_ids: Array<BlogPostId>,
+	blog_post_ids: Array<BlogPostId>
 ): Promise<Array<BlogPostModule>> =>
 	Promise.all(
 		blog_post_ids.map(
-			(blog_post_id) => import(join(blog_dir, blog_post_id.toString(), '+page.svelte')),
-		),
+			(blog_post_id) => import(join(blog_dir, blog_post_id.toString(), '+page.svelte'))
+		)
 	);
 
 export const to_next_blog_post_id = (blog_post_ids: Array<BlogPostId>): BlogPostId => {
@@ -136,20 +136,20 @@ export interface CreatedBlogPost {
  * and slug. Does not run `gen` - callers invoke that afterward (see `post.task.ts`).
  */
 export const create_blog_post = async (
-	options: CreateBlogPostOptions,
+	options: CreateBlogPostOptions
 ): Promise<CreatedBlogPost> => {
-	const {dir, config, title, date, fuz_blog_import_path, routes_path = 'src/routes'} = options;
+	const { dir, config, title, date, fuz_blog_import_path, routes_path = 'src/routes' } = options;
 	const slug = slugify(title);
 	const blog_dir = join(dir, routes_path, config.dirname);
 	const blog_post_id = to_next_blog_post_id(collect_blog_post_ids(blog_dir));
 	const path = to_blog_post_path(blog_dir, blog_post_id);
 	const scaffold = options.scaffold ?? config.scaffold ?? scaffold_blog_post;
-	const content = format_file(scaffold({title, slug, date, fuz_blog_import_path}), {
-		lang: 'svelte',
+	const content = format_file(scaffold({ title, slug, date, fuz_blog_import_path }), {
+		lang: 'svelte'
 	});
-	await mkdir(dirname(path), {recursive: true});
+	await mkdir(dirname(path), { recursive: true });
 	await writeFile(path, content, 'utf8');
-	return {blog_post_id, path, slug};
+	return { blog_post_id, path, slug };
 };
 
 export interface UpdateBlogPostOptions {
@@ -177,9 +177,9 @@ export interface UpdatedBlogPost {
  * `update_post.task.ts`).
  */
 export const update_blog_post = async (
-	options: UpdateBlogPostOptions,
+	options: UpdateBlogPostOptions
 ): Promise<UpdatedBlogPost> => {
-	const {dir, config, blog_post_id, date, routes_path = 'src/routes'} = options;
+	const { dir, config, blog_post_id, date, routes_path = 'src/routes' } = options;
 	const blog_dir = join(dir, routes_path, config.dirname);
 	const path = to_blog_post_path(blog_dir, blog_post_id);
 	if (!existsSync(path)) {
@@ -188,5 +188,5 @@ export const update_blog_post = async (
 	const content = await readFile(path, 'utf8');
 	const updated_content = content.replace(/date_modified: '[^']*'/, `date_modified: '${date}'`);
 	await writeFile(path, updated_content, 'utf8');
-	return {blog_post_id, path};
+	return { blog_post_id, path };
 };

@@ -1,5 +1,5 @@
-import type {Url} from '@fuzdev/fuz_util/url.ts';
-import type {FetchValueCacheItem} from '@fuzdev/fuz_util/fetch.ts';
+import type { Url } from '@fuzdev/fuz_util/url.ts';
+import type { FetchValueCacheItem } from '@fuzdev/fuz_util/fetch.ts';
 
 export const mastodon_dev_cache_data: Array<[Url, FetchValueCacheItem]> = [
 	[
@@ -61,38 +61,38 @@ export const mastodon_dev_cache_data: Array<[Url, FetchValueCacheItem]> = [
 							name: 'home',
 							value:
 								'<a href="https://www.ryanatkn.com" target="_blank" rel="nofollow noopener noreferrer me" translate="no"><span class="invisible">https://www.</span><span class="">ryanatkn.com</span><span class="invisible"></span></a>',
-							verified_at: '2022-11-03T21:15:11.127+00:00',
+							verified_at: '2022-11-03T21:15:11.127+00:00'
 						},
 						{
 							name: 'code',
 							value:
 								'<a href="https://github.com/ryanatkn" target="_blank" rel="nofollow noopener noreferrer me" translate="no"><span class="invisible">https://</span><span class="">github.com/ryanatkn</span><span class="invisible"></span></a>',
-							verified_at: '2024-11-19T18:59:23.067+00:00',
+							verified_at: '2024-11-19T18:59:23.067+00:00'
 						},
 						{
 							name: 'Mastodon (professional)',
 							value:
 								'<a href="https://hci.social/@ryanatkn" target="_blank" rel="nofollow noopener noreferrer me" translate="no"><span class="invisible">https://</span><span class="">hci.social/@ryanatkn</span><span class="invisible"></span></a>',
-							verified_at: '2024-11-19T19:22:12.119+00:00',
+							verified_at: '2024-11-19T19:22:12.119+00:00'
 						},
 						{
 							name: 'Bluesky',
 							value:
 								'<a href="https://bsky.app/profile/ryanatkn.com" target="_blank" rel="nofollow noopener noreferrer me" translate="no"><span class="invisible">https://</span><span class="">bsky.app/profile/ryanatkn.com</span><span class="invisible"></span></a>',
-							verified_at: null,
-						},
-					],
+							verified_at: null
+						}
+					]
 				},
 				media_attachments: [],
 				mentions: [],
 				tags: [],
 				emojis: [],
 				card: null,
-				poll: null,
+				poll: null
 			},
 			etag: null,
-			last_modified: null,
-		},
+			last_modified: null
+		}
 	],
 	[
 		'GET::https://fosstodon.org/api/v1/statuses/113510864332714371/context',
@@ -157,40 +157,40 @@ export const mastodon_dev_cache_data: Array<[Url, FetchValueCacheItem]> = [
 									name: 'home',
 									value:
 										'<a href="https://www.ryanatkn.com" target="_blank" rel="nofollow noopener noreferrer me" translate="no"><span class="invisible">https://www.</span><span class="">ryanatkn.com</span><span class="invisible"></span></a>',
-									verified_at: '2022-11-03T21:15:11.127+00:00',
+									verified_at: '2022-11-03T21:15:11.127+00:00'
 								},
 								{
 									name: 'code',
 									value:
 										'<a href="https://github.com/ryanatkn" target="_blank" rel="nofollow noopener noreferrer me" translate="no"><span class="invisible">https://</span><span class="">github.com/ryanatkn</span><span class="invisible"></span></a>',
-									verified_at: '2024-11-19T18:59:23.067+00:00',
+									verified_at: '2024-11-19T18:59:23.067+00:00'
 								},
 								{
 									name: 'Mastodon (professional)',
 									value:
 										'<a href="https://hci.social/@ryanatkn" target="_blank" rel="nofollow noopener noreferrer me" translate="no"><span class="invisible">https://</span><span class="">hci.social/@ryanatkn</span><span class="invisible"></span></a>',
-									verified_at: '2024-11-19T19:22:12.119+00:00',
+									verified_at: '2024-11-19T19:22:12.119+00:00'
 								},
 								{
 									name: 'Bluesky',
 									value:
 										'<a href="https://bsky.app/profile/ryanatkn.com" target="_blank" rel="nofollow noopener noreferrer me" translate="no"><span class="invisible">https://</span><span class="">bsky.app/profile/ryanatkn.com</span><span class="invisible"></span></a>',
-									verified_at: null,
-								},
-							],
+									verified_at: null
+								}
+							]
 						},
 						media_attachments: [],
 						mentions: [],
 						tags: [],
 						emojis: [],
 						card: null,
-						poll: null,
-					},
-				],
+						poll: null
+					}
+				]
 			},
 			etag: null,
-			last_modified: null,
-		},
+			last_modified: null
+		}
 	],
 	[
 		'GET::https://fosstodon.org/api/v1/statuses/114422499177310600',
@@ -252,27 +252,27 @@ export const mastodon_dev_cache_data: Array<[Url, FetchValueCacheItem]> = [
 							name: 'home',
 							value:
 								'<a href="https://www.ryanatkn.com" target="_blank" rel="nofollow noopener noreferrer me" translate="no"><span class="invisible">https://www.</span><span class="">ryanatkn.com</span><span class="invisible"></span></a>',
-							verified_at: '2022-11-03T21:15:11.127+00:00',
+							verified_at: '2022-11-03T21:15:11.127+00:00'
 						},
 						{
 							name: 'code',
 							value:
 								'<a href="https://github.com/ryanatkn" target="_blank" rel="nofollow noopener noreferrer me" translate="no"><span class="invisible">https://</span><span class="">github.com/ryanatkn</span><span class="invisible"></span></a>',
-							verified_at: '2024-11-19T18:59:23.067+00:00',
+							verified_at: '2024-11-19T18:59:23.067+00:00'
 						},
 						{
 							name: 'Mastodon (professional)',
 							value:
 								'<a href="https://hci.social/@ryanatkn" target="_blank" rel="nofollow noopener noreferrer me" translate="no"><span class="invisible">https://</span><span class="">hci.social/@ryanatkn</span><span class="invisible"></span></a>',
-							verified_at: '2024-11-19T19:22:12.119+00:00',
+							verified_at: '2024-11-19T19:22:12.119+00:00'
 						},
 						{
 							name: 'Bluesky',
 							value:
 								'<a href="https://bsky.app/profile/ryanatkn.com" target="_blank" rel="nofollow noopener noreferrer me" translate="no"><span class="invisible">https://</span><span class="">bsky.app/profile/ryanatkn.com</span><span class="invisible"></span></a>',
-							verified_at: null,
-						},
-					],
+							verified_at: null
+						}
+					]
 				},
 				media_attachments: [],
 				mentions: [],
@@ -296,13 +296,13 @@ export const mastodon_dev_cache_data: Array<[Url, FetchValueCacheItem]> = [
 					embed_url: '',
 					blurhash: null,
 					published_at: null,
-					authors: [],
+					authors: []
 				},
-				poll: null,
+				poll: null
 			},
 			etag: null,
-			last_modified: null,
-		},
+			last_modified: null
+		}
 	],
 	[
 		'GET::https://fosstodon.org/api/v1/statuses/114422499177310600/context',
@@ -310,9 +310,9 @@ export const mastodon_dev_cache_data: Array<[Url, FetchValueCacheItem]> = [
 			key: 'GET::https://fosstodon.org/api/v1/statuses/114422499177310600/context',
 			url: 'https://fosstodon.org/api/v1/statuses/114422499177310600/context',
 			params: null,
-			value: {ancestors: [], descendants: []},
+			value: { ancestors: [], descendants: [] },
 			etag: null,
-			last_modified: null,
-		},
-	],
+			last_modified: null
+		}
+	]
 ];

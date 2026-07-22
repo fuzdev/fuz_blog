@@ -1,11 +1,11 @@
 <script lang="ts">
-	import {resolve} from '$app/paths';
-	import type {Pathname} from '$app/types';
+	import { resolve } from '$app/paths';
+	import type { Pathname } from '$app/types';
 
 	import FeedItemDate from './FeedItemDate.svelte';
-	import type {BlogFeed} from './blog.ts';
+	import type { BlogFeed } from './blog.ts';
 
-	const {feed}: {feed: BlogFeed} = $props();
+	const { feed }: { feed: BlogFeed } = $props();
 
 	// newest first
 	const items = $derived(feed.items.slice().reverse());

@@ -7,23 +7,23 @@
 	import Dialog from '@fuzdev/fuz_ui/Dialog.svelte';
 	import DialogContent from '@fuzdev/fuz_ui/DialogContent.svelte';
 	import ContextmenuRoot from '@fuzdev/fuz_ui/ContextmenuRoot.svelte';
-	import {contextmenu_attachment} from '@fuzdev/fuz_ui/contextmenu_state.svelte.ts';
-	import {SiteState, site_context} from '@fuzdev/fuz_ui/site.svelte.ts';
-	import {logo_fuz_blog} from '@fuzdev/fuz_ui/logos.ts';
-	import type {Snippet} from 'svelte';
+	import { contextmenu_attachment } from '@fuzdev/fuz_ui/contextmenu_state.svelte.ts';
+	import { SiteState, site_context } from '@fuzdev/fuz_ui/site.svelte.ts';
+	import { logo_fuz_blog } from '@fuzdev/fuz_ui/logos.ts';
+	import type { Snippet } from 'svelte';
 	import pkg_json from 'virtual:pkg.json';
 
 	import Settings from './Settings.svelte';
-	import {blog_feed_context} from '$lib/blog.ts';
-	import {feed} from './blog/feed.ts';
+	import { blog_feed_context } from '$lib/blog.ts';
+	import { feed } from './blog/feed.ts';
 
 	const {
-		children,
+		children
 	}: {
 		children: Snippet;
 	} = $props();
 
-	site_context.set(new SiteState({icon: logo_fuz_blog, pkg_json}));
+	site_context.set(new SiteState({ icon: logo_fuz_blog, pkg_json }));
 
 	blog_feed_context.set(feed);
 
@@ -45,8 +45,8 @@
 				icon: '?',
 				run: () => {
 					show_settings = true;
-				},
-			},
+				}
+			}
 		},
 		{
 			snippet: 'text',
@@ -55,9 +55,9 @@
 				icon: '⟳',
 				run: () => {
 					location.reload();
-				},
-			},
-		},
+				}
+			}
+		}
 	])}
 />
 

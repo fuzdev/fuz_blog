@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import type {BlogPostMetadata} from '$lib/blog.ts';
+	import type { BlogPostMetadata } from '$lib/blog.ts';
 
 	export const post = {
 		title: 'Hello fuz_blog',
@@ -10,8 +10,8 @@
 		tags: ['blog software', 'sveltekit'],
 		comments: {
 			url: 'https://fosstodon.org/@ryanatkn/114422499177310600',
-			type: 'mastodon',
-		},
+			type: 'mastodon'
+		}
 	} satisfies BlogPostMetadata;
 </script>
 

@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type {SvelteHTMLElements} from 'svelte/elements';
-	import type {Snippet} from 'svelte';
+	import type { SvelteHTMLElements } from 'svelte/elements';
+	import type { Snippet } from 'svelte';
 
 	import BlogPostHeader from './BlogPostHeader.svelte';
-	import {blog_feed_context, type BlogPostMetadata, type BlogFeedItem} from './blog.ts';
+	import { blog_feed_context, type BlogPostMetadata, type BlogFeedItem } from './blog.ts';
 
 	const {
 		post,
@@ -12,7 +12,7 @@
 		meta,
 		footer,
 		comments,
-		children,
+		children
 	}: {
 		post: BlogPostMetadata;
 		/**
@@ -37,7 +37,7 @@
 
 	// TODO maybe clean up the type vs `post`
 	const resolved_item = $derived(
-		item ?? blog_feed_context.get_maybe()?.items.find((i) => i.slug === post.slug),
+		item ?? blog_feed_context.get_maybe()?.items.find((i) => i.slug === post.slug)
 	);
 </script>
 

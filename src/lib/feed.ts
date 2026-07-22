@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import { z } from 'zod';
 
 // TODO publish `feed.json` not just the Atom `feed.xml`
 
@@ -19,7 +19,7 @@ export const FeedItem = z.strictObject({
 	// content_html: string;
 	// image?: string;
 	// external_url?: string;
-	tags: z.array(z.string()).optional(),
+	tags: z.array(z.string()).optional()
 });
 export type FeedItem = z.infer<typeof FeedItem>;
 
@@ -39,13 +39,13 @@ export const Feed = z.strictObject({
 	author: z.strictObject({
 		name: z.string(),
 		url: z.url().optional(),
-		email: z.email().optional(),
+		email: z.email().optional()
 	}),
 	// TODO date_modified for entire feed?
 	items: z.array(FeedItem),
 	atom: z.strictObject({
-		feed_url: z.url(),
-	}),
+		feed_url: z.url()
+	})
 	// TODO should these be on the root?
 	// yes if the goal is to match the data structure of JSON Feed as much as possible,
 	// no if the goal is to put shared properties on the root and format-specific properties in a namespace
@@ -106,7 +106,7 @@ export const create_atom_feed = (data: Feed): string => {
     <updated>${item.date_modified}</updated>
     <summary>${escape_xml(item.summary)}</summary>
     ${item.tags ? item.tags.map((tag) => `<category term="${escape_xml(tag)}" />`).join('') : ''}
-  </entry>`,
+  </entry>`
 		)
 		.join('\n')}
 

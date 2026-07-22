@@ -1,4 +1,4 @@
-import {assert, describe, test} from 'vitest';
+import { assert, describe, test } from 'vitest';
 
 import {
 	resolve_blog_config,
@@ -6,7 +6,7 @@ import {
 	BlogFeedItem,
 	type BlogConfig,
 	type BlogFeedMetadata,
-	type BlogPostMetadata,
+	type BlogPostMetadata
 } from '$lib/blog.ts';
 
 const post: BlogPostMetadata = {
@@ -14,7 +14,7 @@ const post: BlogPostMetadata = {
 	slug: 'hello-fuz-blog',
 	date_published: '2024-07-15T00:00:00.000Z',
 	date_modified: '2024-07-15T00:00:00.000Z',
-	summary: 'a summary',
+	summary: 'a summary'
 };
 
 describe('resolve_blog_feed_item', () => {
@@ -37,15 +37,15 @@ describe('resolve_blog_feed_item', () => {
 	});
 
 	test('passes comments through', () => {
-		const comments = {type: 'mastodon', url: 'https://mastodon.example/@a/1'} as const;
-		const item = resolve_blog_feed_item(1, 'https://blog.fuz.dev/blog', {...post, comments});
+		const comments = { type: 'mastodon', url: 'https://mastodon.example/@a/1' } as const;
+		const item = resolve_blog_feed_item(1, 'https://blog.fuz.dev/blog', { ...post, comments });
 		assert.deepEqual(item.comments, comments);
 	});
 
 	test('emits only BlogFeedItem fields even when the post carries extras', () => {
 		const item = resolve_blog_feed_item(1, 'https://blog.fuz.dev/blog', {
 			...post,
-			model: 'some-model',
+			model: 'some-model'
 		} as BlogPostMetadata);
 		assert.ok(!('model' in item));
 		// strict schema throws if a consumer field leaked into the feed entry
@@ -65,7 +65,9 @@ describe('post route pathname', () => {
 	});
 
 	test('without slug routes, the url is the integer id path', () => {
-		const item = resolve_blog_feed_item(1, 'https://blog.fuz.dev/blog', post, {slug_routes: false});
+		const item = resolve_blog_feed_item(1, 'https://blog.fuz.dev/blog', post, {
+			slug_routes: false
+		});
 		assert.equal(item.url, item.id);
 		assert.equal(item.pathname, '/blog/1');
 	});
@@ -79,12 +81,12 @@ describe('resolve_blog_config', () => {
 		description: 'desc',
 		icon: 'https://blog.fuz.dev/favicon.png',
 		favicon: 'https://blog.fuz.dev/favicon.png',
-		author: {name: 'Test'},
-		atom: {feed_url: 'https://blog.fuz.dev/blog/feed.xml'},
+		author: { name: 'Test' },
+		atom: { feed_url: 'https://blog.fuz.dev/blog/feed.xml' }
 	};
 	const blogs: Array<BlogConfig> = [
-		{dirname: 'blog', feed},
-		{dirname: 'autoblog', feed},
+		{ dirname: 'blog', feed },
+		{ dirname: 'autoblog', feed }
 	];
 
 	test('defaults to the first blog when no dirname is given', () => {

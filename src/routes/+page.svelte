@@ -1,11 +1,11 @@
 <script lang="ts">
-	import {resolve} from '$app/paths';
+	import { resolve } from '$app/paths';
 	import Card from '@fuzdev/fuz_ui/Card.svelte';
 	import Svg from '@fuzdev/fuz_ui/Svg.svelte';
-	import {logo_fuz_blog} from '@fuzdev/fuz_ui/logos.ts';
+	import { logo_fuz_blog } from '@fuzdev/fuz_ui/logos.ts';
 	import DocsFooter from '@fuzdev/fuz_ui/DocsFooter.svelte';
-	import {site_context} from '@fuzdev/fuz_ui/site.svelte.ts';
-	import {FUZ_DEV_URL} from '@fuzdev/fuz_ui/constants.ts';
+	import { site_context } from '@fuzdev/fuz_ui/site.svelte.ts';
+	import { FUZ_DEV_URL } from '@fuzdev/fuz_ui/constants.ts';
 	import Code from '@fuzdev/fuz_code/Code.svelte';
 
 	const site = site_context.get();
@@ -48,8 +48,7 @@ export const blogs: Array<BlogConfig> = [
 ];`}
 		/>
 		<p>
-			To enable your generated <code>feed.xml</code>, include it as a <code>link</code> in your
-			layout:
+			To enable your generated <code>feed.xml</code>, include it as a <code>link</code> in your layout:
 		</p>
 		<Code
 			content={`<!-- src/routes/+layout.svelte -->
