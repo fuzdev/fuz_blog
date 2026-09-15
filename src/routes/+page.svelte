@@ -1,11 +1,11 @@
 <script lang="ts">
-	import {resolve} from '$app/paths';
+	import { resolve } from '$app/paths';
 	import Card from '@fuzdev/fuz_ui/Card.svelte';
 	import Svg from '@fuzdev/fuz_ui/Svg.svelte';
-	import {logo_fuz_blog} from '@fuzdev/fuz_ui/logos.ts';
+	import { logo_fuz_blog } from '@fuzdev/fuz_ui/logos.ts';
 	import DocsFooter from '@fuzdev/fuz_ui/DocsFooter.svelte';
-	import {site_context} from '@fuzdev/fuz_ui/site.svelte.ts';
-	import {FUZ_DEV_URL} from '@fuzdev/fuz_ui/constants.ts';
+	import { site_context } from '@fuzdev/fuz_ui/site.svelte.ts';
+	import { FUZ_DEV_URL } from '@fuzdev/fuz_ui/constants.ts';
 
 	const site = site_context.get();
 </script>
@@ -20,7 +20,10 @@
 	</section>
 	<section class="box">
 		<div class="mb_lg">
-			<Card href={resolve('/docs')}>docs{#snippet icon()}{site.glyph}{/snippet}</Card>
+			<Card href={resolve('/docs')}>
+				docs
+				{#snippet icon()}{site.glyph}{/snippet}
+			</Card>
 		</div>
 		<Card href={resolve('/blog')} icon="🪧">blog</Card>
 	</section>

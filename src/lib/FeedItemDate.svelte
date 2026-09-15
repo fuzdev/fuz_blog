@@ -11,5 +11,6 @@
 
 {format_date(
 	item.date_published || item.date_modified
-)}{#if item.date_published && item.date_modified && item.date_published !== item.date_modified},
-	updated {format_date(item.date_modified)}{/if}
+)}{#if item.date_published && item.date_modified && item.date_published !== item.date_modified}
+	, updated {format_date(item.date_modified)}
+{/if}
