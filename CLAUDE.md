@@ -244,7 +244,7 @@ accessible from the context menu for theme customization.
 
 - TypeScript strict mode
 - Svelte 5 with runes API
-- Prettier with tabs, 100 char width
+- tsv (`gro format`) with tabs, 100 char width
 - Node >= 22.15
 - Tests in `src/test/` (not co-located)
 
