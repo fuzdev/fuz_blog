@@ -20,9 +20,6 @@ gro post "Title" # scaffold a new blog post
 gro update_post  # update date_modified on existing post
 ```
 
-IMPORTANT for AI agents: Do NOT run `gro dev` - the developer will manage the
-dev server.
-
 ### Task arguments
 
 Both `gro post` and `gro update_post` support additional flags:
