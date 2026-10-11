@@ -1,10 +1,18 @@
 # @fuzdev/fuz_blog
 
+## 0.32.0
+
+### Minor Changes
+
+- chore: bump the `@fuzdev/fuz_css` peer to `>=0.65.0` and the `@fuzdev/fuz_ui` peer to `>=0.210.0` ([df375ca](https://github.com/fuzdev/fuz_blog/commit/df375ca))
+- **breaking** feat: support SvelteKit 3 (`@sveltejs/kit` peer `^3`, `@fuzdev/gro` peer `>=0.214.0`, the first Gro that supports SvelteKit 3) ([942a881](https://github.com/fuzdev/fuz_blog/commit/942a881))
+
 ## 0.31.0
 
 ### Minor Changes
 
 - break: Zod-validated feed, `pathname` on feed items, and clearer type names ([d76d843](https://github.com/fuzdev/fuz_blog/commit/d76d843))
+
   - rename `BlogPostData` → `BlogPostMetadata` and `BlogPostItem` → `BlogFeedItem`
     (the latter parallels `Feed`/`FeedItem` and `BlogFeed`); update imports and any
     `satisfies BlogPostData` in your post modules
