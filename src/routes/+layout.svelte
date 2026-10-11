@@ -14,7 +14,7 @@
 	import pkg_json from 'virtual:pkg.json';
 
 	import Settings from './Settings.svelte';
-	import { blog_feed_context } from '$lib/blog.ts';
+	import { blog_feed_context } from '#lib/blog.ts';
 	import { feed } from './blog/feed.ts';
 
 	const {

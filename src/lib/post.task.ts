@@ -43,7 +43,7 @@ export const task: Task<Args> = {
 
 		const package_json = await package_json_load();
 		const fuz_blog_import_path =
-			package_json.name === '@fuzdev/fuz_blog' ? '$lib' : '@fuzdev/fuz_blog';
+			package_json.name === '@fuzdev/fuz_blog' ? '#lib' : '@fuzdev/fuz_blog';
 
 		const { blog_post_id, path, slug } = await create_blog_post({
 			dir,

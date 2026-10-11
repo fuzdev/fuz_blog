@@ -7,7 +7,7 @@ import {
 	type BlogConfig,
 	type BlogFeedMetadata,
 	type BlogPostMetadata
-} from '$lib/blog.ts';
+} from '#lib/blog.ts';
 
 const post: BlogPostMetadata = {
 	title: 'Hello Fuz Blog',
@@ -46,7 +46,7 @@ describe('resolve_blog_feed_item', () => {
 		const item = resolve_blog_feed_item(1, 'https://blog.fuz.dev/blog', {
 			...post,
 			model: 'some-model'
-		} as BlogPostMetadata);
+		});
 		assert.ok(!('model' in item));
 		// strict schema throws if a consumer field leaked into the feed entry
 		BlogFeedItem.parse(item);

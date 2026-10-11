@@ -112,7 +112,7 @@ export interface CreateBlogPostOptions {
 	title: string;
 	/** ISO date used for both `date_published` and `date_modified`. */
 	date: string;
-	/** Import specifier for fuz_blog modules - `$lib` inside fuz_blog, `@fuzdev/fuz_blog` in consumers. */
+	/** Import specifier for fuz_blog modules - `#lib` inside fuz_blog, `@fuzdev/fuz_blog` in consumers. */
 	fuz_blog_import_path: string;
 	/**
 	 * Overrides the scaffold for this call, taking precedence over

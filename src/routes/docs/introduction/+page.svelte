@@ -68,7 +68,7 @@ export const blogs: Array<BlogConfig> = [
 ${'<'}script lang="ts">
 	import {blog_feed_context} from '@fuzdev/fuz_blog/blog.ts';
 
-	import {feed} from '$routes/blog/feed.ts';
+	import {feed} from './blog/feed.ts';
 
 	blog_feed_context.set(feed);
 </script>

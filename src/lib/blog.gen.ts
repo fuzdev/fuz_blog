@@ -15,7 +15,7 @@ import { resolve_blog_feed_item, BlogPostMetadata, BlogFeed } from './blog.ts';
 export const gen: Gen = async ({ origin_path }) => {
 	const package_json = await package_json_load();
 	const fuz_blog_import_path =
-		package_json.name === '@fuzdev/fuz_blog' ? '$lib' : '@fuzdev/fuz_blog';
+		package_json.name === '@fuzdev/fuz_blog' ? '#lib' : '@fuzdev/fuz_blog';
 
 	const dir = process.cwd();
 	const routes_path = 'src/routes'; // TODO read from SvelteKit config;

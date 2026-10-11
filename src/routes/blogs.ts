@@ -1,4 +1,4 @@
-import type { BlogConfig } from '$lib/blog.ts';
+import type { BlogConfig } from '#lib/blog.ts';
 
 // TODO extract to fuz.config.ts?
 export const blogs: Array<BlogConfig> = [

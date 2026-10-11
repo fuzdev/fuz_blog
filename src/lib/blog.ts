@@ -83,7 +83,7 @@ export interface BlogPostScaffoldOptions {
 	date: string;
 	/**
 	 * Import specifier for fuz_blog modules -
-	 * `$lib` inside fuz_blog itself, `@fuzdev/fuz_blog` in consumers.
+	 * `#lib` inside fuz_blog itself, `@fuzdev/fuz_blog` in consumers.
 	 */
 	fuz_blog_import_path: string;
 }

@@ -1,6 +1,6 @@
 import { assert, describe, test } from 'vitest';
 
-import { create_atom_feed, type Feed } from '$lib/feed.ts';
+import { create_atom_feed, type Feed } from '#lib/feed.ts';
 
 const feed: Feed = {
 	id: 'https://example.com/',

@@ -32,7 +32,7 @@
 		// 		void navigator.clipboard.writeText(text);
 		// 	}, 500);
 		// }
-		// Then paste the string into `$routes/blog/mastodon_dev_cache_data.ts`
+		// Then paste the string into `src/routes/blog/mastodon_dev_cache_data.ts`
 		// as the exported `mastodon_dev_cache_data` value.
 	}
 

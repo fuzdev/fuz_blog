@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import type { BlogPostMetadata } from '$lib/blog.ts';
+	import type { BlogPostMetadata } from '#lib/blog.ts';
 
 	export const post = {
 		title: 'Hello fuz_blog',
@@ -16,9 +16,9 @@
 </script>
 
 <script lang="ts">
-	import BlogPost from '$lib/BlogPost.svelte';
-	import BlogPostComments from '$lib/BlogPostComments.svelte';
-	import BlogPostFooter from '$routes/blog/BlogPostFooter.svelte';
+	import BlogPost from '#lib/BlogPost.svelte';
+	import BlogPostComments from '#lib/BlogPostComments.svelte';
+	import BlogPostFooter from '#routes/blog/BlogPostFooter.svelte';
 </script>
 
 <BlogPost {post}>
