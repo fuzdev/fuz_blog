@@ -41,7 +41,9 @@ export const gen: Gen = async ({ origin_path }) => {
 					`invalid post metadata at ${dirname}/${i + 1}: ${z.prettifyError(parsed.error)}`
 				);
 			}
-			return resolve_blog_feed_item(i + 1, blog.home_page_url, parsed.data, { slug_routes });
+			return resolve_blog_feed_item(i + 1, dirname, blog.home_page_url, parsed.data, {
+				slug_routes
+			});
 		});
 
 		// strict output: a leaked field or malformed entry fails here, at gen time

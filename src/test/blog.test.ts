@@ -19,31 +19,34 @@ const post: BlogPostMetadata = {
 
 describe('resolve_blog_feed_item', () => {
 	test('derives id and url from the blog url and post', () => {
-		const item = resolve_blog_feed_item(1, 'https://blog.fuz.dev/blog', post);
+		const item = resolve_blog_feed_item(1, 'blog', 'https://blog.fuz.dev/blog', post);
 		assert.equal(item.id, 'https://blog.fuz.dev/blog/1');
 		assert.equal(item.url, 'https://blog.fuz.dev/blog/hello-fuz-blog');
 		assert.equal(item.blog_post_id, 1);
 	});
 
 	test('strips a trailing slash from the blog url', () => {
-		const item = resolve_blog_feed_item(2, 'https://blog.fuz.dev/blog/', post);
+		const item = resolve_blog_feed_item(2, 'blog', 'https://blog.fuz.dev/blog/', post);
 		assert.equal(item.id, 'https://blog.fuz.dev/blog/2');
 		assert.equal(item.url, 'https://blog.fuz.dev/blog/hello-fuz-blog');
 	});
 
 	test('defaults tags to an empty array', () => {
-		const item = resolve_blog_feed_item(1, 'https://blog.fuz.dev/blog', post);
+		const item = resolve_blog_feed_item(1, 'blog', 'https://blog.fuz.dev/blog', post);
 		assert.deepEqual(item.tags, []);
 	});
 
 	test('passes comments through', () => {
 		const comments = { type: 'mastodon', url: 'https://mastodon.example/@a/1' } as const;
-		const item = resolve_blog_feed_item(1, 'https://blog.fuz.dev/blog', { ...post, comments });
+		const item = resolve_blog_feed_item(1, 'blog', 'https://blog.fuz.dev/blog', {
+			...post,
+			comments
+		});
 		assert.deepEqual(item.comments, comments);
 	});
 
 	test('emits only BlogFeedItem fields even when the post carries extras', () => {
-		const item = resolve_blog_feed_item(1, 'https://blog.fuz.dev/blog', {
+		const item = resolve_blog_feed_item(1, 'blog', 'https://blog.fuz.dev/blog', {
 			...post,
 			model: 'some-model'
 		});
@@ -59,17 +62,24 @@ describe('resolve_blog_feed_item', () => {
 // derivation dropped the blog path segment.
 describe('post route pathname', () => {
 	test('slug routes resolve under the blog dirname', () => {
-		const item = resolve_blog_feed_item(1, 'https://blog.fuz.dev/blog', post);
+		const item = resolve_blog_feed_item(1, 'blog', 'https://blog.fuz.dev/blog', post);
 		assert.equal(item.pathname, '/blog/hello-fuz-blog');
 		assert.equal(new URL(item.url).pathname, item.pathname);
 	});
 
 	test('without slug routes, the url is the integer id path', () => {
-		const item = resolve_blog_feed_item(1, 'https://blog.fuz.dev/blog', post, {
+		const item = resolve_blog_feed_item(1, 'blog', 'https://blog.fuz.dev/blog', post, {
 			slug_routes: false
 		});
 		assert.equal(item.url, item.id);
 		assert.equal(item.pathname, '/blog/1');
+	});
+
+	test('excludes a base path carried by home_page_url', () => {
+		// `resolve` adds the base once, so `pathname` must not carry it
+		const item = resolve_blog_feed_item(1, 'blog', 'https://example.com/base/blog', post);
+		assert.equal(item.url, 'https://example.com/base/blog/hello-fuz-blog');
+		assert.equal(item.pathname, '/blog/hello-fuz-blog');
 	});
 });
 

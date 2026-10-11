@@ -47,12 +47,14 @@ export type BlogPostMetadata = z.infer<typeof BlogPostMetadata>;
  */
 export interface BlogConfig {
 	/**
-	 * Route directory under `src/routes`, and the blog's base path segment.
+	 * Route directory under `src/routes`, and the blog's base path segment -
+	 * so it equals the URL path, with no route groups and no leading or
+	 * trailing slash. Post `pathname`s derive from it.
 	 */
 	dirname: string;
 
 	/**
-	 * Feed-level metadata. Post URLs derive from `home_page_url`,
+	 * Feed-level metadata. Post `id`s and `url`s derive from `home_page_url`,
 	 * so set it to the blog's index page.
 	 */
 	feed: BlogFeedMetadata;
@@ -116,7 +118,8 @@ export const BlogFeedItem = z.strictObject({
 			'absolute URL to the post keyed by `slug` (e.g. `https://example.com/blog/my-post`); equals `id` when the blog’s `slug_routes` is `false`'
 	}),
 	pathname: z.string().meta({
-		description: 'app-relative path to the post (e.g. `/blog/my-post`), for in-app links'
+		description:
+			'app-relative route of the post (e.g. `/blog/my-post`), without any base path, for in-app links via `resolve`'
 	}),
 	blog_post_id: z.number().meta({ description: 'incrementing 1-based integer' }), // TODO maybe random?
 	...blog_post_metadata_shape,
@@ -152,16 +155,18 @@ export const resolve_blog_config = (
 
 /**
  * Derives a `BlogFeedItem` (the feed entry) from a post and its blog's
- * `home_page_url`. Emits only `BlogFeedItem` fields - a consumer's extra post
- * metadata stays on the page's `post` for its component to render, and does not
- * leak into the typed generated feed.
+ * `dirname` and `home_page_url`. Emits only `BlogFeedItem` fields - a
+ * consumer's extra post metadata stays on the page's `post` for its component
+ * to render, and does not leak into the typed generated feed.
  * @param blog_post_id - the post's incrementing 1-based id
+ * @param dirname - the blog's route directory under `src/routes`, from its `BlogConfig`
  * @param home_page_url - the blog's index url, from its `feed.home_page_url`
  * @param post - the author-defined post metadata
  * @param options - `slug_routes: false` makes `url` the integer-id `id`
  */
 export const resolve_blog_feed_item = (
 	blog_post_id: BlogPostId,
+	dirname: string,
 	home_page_url: string,
 	post: BlogPostMetadata,
 	options?: { slug_routes?: boolean }
@@ -169,13 +174,16 @@ export const resolve_blog_feed_item = (
 	const base = strip_end(home_page_url, '/');
 	const id = base + '/' + blog_post_id;
 	// without slug routes, posts are addressed by their integer id
-	const url = (options?.slug_routes ?? true) ? base + '/' + post.slug : id;
+	const slug_routes = options?.slug_routes ?? true;
+	const url = slug_routes ? base + '/' + post.slug : id;
 	// copy fields explicitly - this is the strip seam; spreading `...post` would
 	// leak a consumer's extra metadata into the typed feed (see the TSDoc above)
 	return {
 		id,
 		url,
-		pathname: new URL(url).pathname,
+		// the on-disk route, not `new URL(url).pathname` - that includes any `paths.base`,
+		// which `resolve` adds again
+		pathname: '/' + dirname + '/' + (slug_routes ? post.slug : blog_post_id),
 		blog_post_id,
 		title: post.title,
 		slug: post.slug,
