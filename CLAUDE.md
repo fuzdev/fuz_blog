@@ -31,9 +31,9 @@ gro update_post 1 --date 2024-07-10T16:04:49.688Z # update specific post
 gro update_post 1 --blog autoblog                 # update in a specific blog
 ```
 
-Arguments use Zod schemas for validation. The tasks auto-detect whether they're
-running in the fuz_blog library itself or in a consuming project, adjusting
-import paths accordingly.
+Arguments use `@fuzdev/fuz_schema` schemas for validation. The tasks
+auto-detect whether they're running in the fuz_blog library itself or in a
+consuming project, adjusting import paths accordingly.
 
 Blogs are declared in the consumer's `src/routes/blogs.ts`, which exports
 `blogs: Array<BlogConfig>` — one entry per blog with a route `dirname`, feed
@@ -242,7 +242,7 @@ accessible from the context menu for theme customization.
 - TypeScript strict mode
 - Svelte 5 with runes API
 - tsv (`gro format`) with tabs, 100 char width
-- Node >= 22.15
+- Node >= 24.14
 - Tests in `src/test/` (not co-located)
 
 ## Related projects

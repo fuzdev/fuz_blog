@@ -1,22 +1,25 @@
 import { TaskError, type Task } from '@fuzdev/gro';
-import { z } from 'zod';
+import * as s from '@fuzdev/fuz_schema/schema.ts';
+import { meta } from '@fuzdev/fuz_schema/meta.ts';
 
 import { load_blogs_module, update_blog_post } from './blog_helpers.ts';
 import { resolve_blog_config } from './blog.ts';
 
 /** @nodocs */
-export const Args = z
-	.object({
-		// TODO accept `slug` as well as `id` ?
-		_: z.array(z.string()).meta({ description: 'id of the post to update' }).max(1).default([]),
-		blog: z
-			.string()
-			.meta({ description: 'dirname of the target blog, defaulting to the first registered' })
-			.optional(),
-		date: z.string().meta({ description: "the post's date_modified" }).optional()
-	})
-	.strict();
-export type Args = z.infer<typeof Args>;
+export const Args = s.object({
+	// TODO accept `slug` as well as `id` ?
+	_: s.with_default_fn(
+		s.pipe(meta(s.array(s.string), { description: 'id of the post to update' }), s.max_length(1)),
+		() => []
+	),
+	blog: s.optional(
+		meta(s.string, {
+			description: 'dirname of the target blog, defaulting to the first registered'
+		})
+	),
+	date: s.optional(meta(s.string, { description: "the post's date_modified" }))
+});
+export type Args = s.Infer<typeof Args>;
 
 /** @nodocs */
 export const task: Task<Args> = {

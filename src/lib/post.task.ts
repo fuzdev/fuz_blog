@@ -1,25 +1,29 @@
 import { TaskError, type Task } from '@fuzdev/gro';
-import { z } from 'zod';
 import { package_json_load } from '@fuzdev/gro/package_json.ts';
+import * as s from '@fuzdev/fuz_schema/schema.ts';
+import { meta } from '@fuzdev/fuz_schema/meta.ts';
 
 import { create_blog_post, load_blogs_module } from './blog_helpers.ts';
 import { resolve_blog_config } from './blog.ts';
 
 /** @nodocs */
-export const Args = z
-	.object({
-		_: z.array(z.string()).meta({ description: 'post title' }).max(1).default([]),
-		blog: z
-			.string()
-			.meta({ description: 'dirname of the target blog, defaulting to the first registered' })
-			.optional(),
-		date: z
-			.string()
-			.meta({ description: "the post's date, used for both date_published and date_modified" })
-			.optional()
-	})
-	.strict();
-export type Args = z.infer<typeof Args>;
+export const Args = s.object({
+	_: s.with_default_fn(
+		s.pipe(meta(s.array(s.string), { description: 'post title' }), s.max_length(1)),
+		() => []
+	),
+	blog: s.optional(
+		meta(s.string, {
+			description: 'dirname of the target blog, defaulting to the first registered'
+		})
+	),
+	date: s.optional(
+		meta(s.string, {
+			description: "the post's date, used for both date_published and date_modified"
+		})
+	)
+});
+export type Args = s.Infer<typeof Args>;
 
 /** @nodocs */
 export const task: Task<Args> = {
