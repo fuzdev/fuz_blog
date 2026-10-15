@@ -1,5 +1,5 @@
 import type { Component } from 'svelte';
-import type { Flavored } from '@fuzdev/fuz_util/types.ts';
+import type { Flavored } from '@fuzdev/fuz_schema/schema.ts';
 import { strip_end } from '@fuzdev/fuz_util/string.ts';
 import { create_context } from '@fuzdev/fuz_ui/context_helpers.ts';
 import { z } from 'zod';
