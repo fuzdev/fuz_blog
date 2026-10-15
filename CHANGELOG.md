@@ -1,5 +1,11 @@
 # @fuzdev/fuz_blog
 
+## 0.33.1
+
+### Patch Changes
+
+- fix: `BlogPostId` imports `Flavored` from `@fuzdev/fuz_schema/schema.ts`, so it keeps its type with fuz_util `0.74.0`, which no longer re-exports it from `types.ts` ([62f4928](https://github.com/fuzdev/fuz_blog/commit/62f4928))
+
 ## 0.33.0
 
 ### Minor Changes
