@@ -2,36 +2,41 @@ import type { Component } from 'svelte';
 import type { Flavored } from '@fuzdev/fuz_schema/schema.ts';
 import { strip_end } from '@fuzdev/fuz_util/string.ts';
 import { create_context } from '@fuzdev/fuz_ui/context_helpers.ts';
-import { z } from 'zod';
+import { omit } from '@fuzdev/fuz_util/object.ts';
+import * as s from '@fuzdev/fuz_schema/schema.ts';
+import { meta } from '@fuzdev/fuz_schema/meta.ts';
 
-import { Feed } from './feed.ts';
+import { FeedDatetime, Feed, FeedUrl } from './feed.ts';
+
+// the `Feed` entries without `items`, shared by `BlogFeedMetadata` and `BlogFeed`
+const blog_feed_metadata_entries = omit(Feed.def, ['items']);
 
 /**
  * A feed's metadata, without its `items`.
  */
-export const BlogFeedMetadata = Feed.omit({ items: true });
-export type BlogFeedMetadata = z.infer<typeof BlogFeedMetadata>;
+export const BlogFeedMetadata = s.object(blog_feed_metadata_entries);
+export type BlogFeedMetadata = s.Infer<typeof BlogFeedMetadata>;
 
-export const MastodonBlogComments = z.strictObject({
-	url: z.string(),
-	type: z.literal('mastodon')
+export const MastodonBlogComments = s.object({
+	url: s.string,
+	type: s.literal('mastodon')
 });
-export type MastodonBlogComments = z.infer<typeof MastodonBlogComments>;
+export type MastodonBlogComments = s.Infer<typeof MastodonBlogComments>;
 
 // TODO support other comment providers
 export const BlogComments = MastodonBlogComments;
-export type BlogComments = z.infer<typeof BlogComments>;
+export type BlogComments = s.Infer<typeof BlogComments>;
 
 // Shared metadata fields, reused by the loose author input (`BlogPostMetadata`)
 // and the strict feed entry (`BlogFeedItem`).
 const blog_post_metadata_shape = {
-	title: z.string(),
-	slug: z.string(),
-	date_published: z.iso.datetime(), // TODO maybe calculated instead of manually defined?
-	date_modified: z.iso.datetime(), // TODO maybe calculated instead of manually defined?
-	summary: z.string(),
-	tags: z.array(z.string()).optional(),
-	comments: BlogComments.optional()
+	title: s.string,
+	slug: s.string,
+	date_published: FeedDatetime, // TODO maybe calculated instead of manually defined?
+	date_modified: FeedDatetime, // TODO maybe calculated instead of manually defined?
+	summary: s.string,
+	tags: s.optional(s.array(s.string)),
+	comments: s.optional(BlogComments)
 };
 
 /**
@@ -39,8 +44,8 @@ const blog_post_metadata_shape = {
  * fields (e.g. an autoblog's `model`); the extras stay on the page's `post` and
  * do not reach the generated `BlogFeed` (see `resolve_blog_feed_item`).
  */
-export const BlogPostMetadata = z.looseObject(blog_post_metadata_shape);
-export type BlogPostMetadata = z.infer<typeof BlogPostMetadata>;
+export const BlogPostMetadata = s.loose_object(blog_post_metadata_shape);
+export type BlogPostMetadata = s.Infer<typeof BlogPostMetadata>;
 
 /**
  * A single blog's configuration in the consumer's `src/routes/blogs.ts` registry.
@@ -108,29 +113,30 @@ export type BlogPostId = Flavored<number, 'BlogPostId'>;
  * A feed entry, derived from a `BlogPostMetadata` by `resolve_blog_feed_item`.
  * Strict, so a leaked consumer field fails the generated feed's validation.
  */
-export const BlogFeedItem = z.strictObject({
-	id: z.string().meta({
+export const BlogFeedItem = s.object({
+	id: meta(s.string, {
 		description:
 			'absolute URL to the post keyed by `blog_post_id` (e.g. `https://example.com/blog/1`), also the feed entry id'
 	}),
-	url: z.url().meta({
+	url: meta(FeedUrl, {
 		description:
 			'absolute URL to the post keyed by `slug` (e.g. `https://example.com/blog/my-post`); equals `id` when the blog’s `slug_routes` is `false`'
 	}),
-	pathname: z.string().meta({
+	pathname: meta(s.string, {
 		description:
 			'app-relative route of the post (e.g. `/blog/my-post`), without any base path, for in-app links via `resolve`'
 	}),
-	blog_post_id: z.number().meta({ description: 'incrementing 1-based integer' }), // TODO maybe random?
+	blog_post_id: meta(s.number, { description: 'incrementing 1-based integer' }), // TODO maybe random?
 	...blog_post_metadata_shape,
-	tags: z.array(z.string()) // required in the feed entry
+	tags: s.array(s.string) // required in the feed entry
 });
-export type BlogFeedItem = z.infer<typeof BlogFeedItem>;
+export type BlogFeedItem = s.Infer<typeof BlogFeedItem>;
 
-export const BlogFeed = BlogFeedMetadata.extend({
-	items: z.array(BlogFeedItem)
+export const BlogFeed = s.object({
+	...blog_feed_metadata_entries,
+	items: s.array(BlogFeedItem)
 });
-export type BlogFeed = z.infer<typeof BlogFeed>;
+export type BlogFeed = s.Infer<typeof BlogFeed>;
 
 export const blog_feed_context = create_context<BlogFeed>();
 

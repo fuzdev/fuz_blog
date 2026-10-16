@@ -26,7 +26,7 @@ export const load_blogs_module = async (dir: string): Promise<BlogsModule> => {
 			`expected a blogs registry at ${path} - export \`blogs: Array<BlogConfig>\` from it`
 		);
 	}
-	const mod = (await import(path)) as BlogsModule; // TODO zod parse
+	const mod = (await import(path)) as BlogsModule; // TODO schema parse
 	if (!Array.isArray(mod.blogs) || mod.blogs.length === 0) {
 		throw new Error(`expected ${path} to export a non-empty \`blogs\` array`);
 	}

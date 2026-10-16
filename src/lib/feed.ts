@@ -1,4 +1,5 @@
-import { z } from 'zod';
+import * as s from '@fuzdev/fuz_schema/schema.ts';
+import { Url } from '@fuzdev/fuz_util/url.ts';
 
 // TODO publish `feed.json` not just the Atom `feed.xml`
 
@@ -7,21 +8,50 @@ import { z } from 'zod';
 // TODO finish mapping with Atom and RSS
 // https://www.jsonfeed.org/mappingrssandatom/
 
-export const FeedItem = z.strictObject({
-	id: z.string(),
-	title: z.string(),
-	url: z.url(),
-	date_published: z.iso.datetime(),
-	date_modified: z.iso.datetime(),
-	summary: z.string(),
+// the pattern of Zod 4's default `z.iso.datetime()`: a calendar-valid date, a time with
+// seconds and any fractional digits, and a `Z` offset (no numeric offset, no local time)
+const DATETIME_PATTERN =
+	/^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|02-(?:0[1-9]|1\d|2[0-8])))T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?Z$/;
+
+/**
+ * An ISO 8601 UTC datetime string like `2024-07-15T00:00:00.000Z`, the form
+ * `Date.prototype.toISOString` writes. The date must exist on the calendar,
+ * seconds are required, fractional seconds take any number of digits, and the
+ * offset must be `Z`. The output is the input unchanged.
+ */
+export const FeedDatetime = s.pipe(s.string, s.regex(DATETIME_PATTERN, 'an ISO datetime'));
+export type FeedDatetime = s.Infer<typeof FeedDatetime>;
+
+/**
+ * An absolute URL as fuz_util's `Url` takes it, with no surrounding
+ * whitespace: the text is kept as written, so padding would reach the
+ * generated feed, where it fails here instead.
+ */
+export const FeedUrl = s.pipe(
+	Url,
+	s.check((v: string) => v === v.trim(), 'a URL without surrounding whitespace')
+);
+
+// the email pattern of Zod's `z.email()`, in the form without lookaheads
+const EMAIL_PATTERN =
+	/^(?:[A-Za-z0-9_'+-]+\.)*[A-Za-z0-9_'+-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9-]*\.)+[A-Za-z]{2,}$/;
+const Email = s.pipe(s.string, s.regex(EMAIL_PATTERN, 'an email'));
+
+export const FeedItem = s.object({
+	id: s.string,
+	title: s.string,
+	url: FeedUrl,
+	date_published: FeedDatetime,
+	date_modified: FeedDatetime,
+	summary: s.string,
 	// TODO
 	// content_text: string;
 	// content_html: string;
 	// image?: string;
 	// external_url?: string;
-	tags: z.array(z.string()).optional()
+	tags: s.optional(s.array(s.string))
 });
-export type FeedItem = z.infer<typeof FeedItem>;
+export type FeedItem = s.Infer<typeof FeedItem>;
 
 /**
  * This is designed to extend JSON Feed 1.1 with namespaced data for other specs like Atom.
@@ -29,22 +59,22 @@ export type FeedItem = z.infer<typeof FeedItem>;
  * and eventually this will be extracted to a standalone library.
  * https://www.jsonfeed.org/version/1.1/
  */
-export const Feed = z.strictObject({
-	id: z.string(),
-	title: z.string(),
-	home_page_url: z.url(),
-	description: z.string(),
-	icon: z.url(),
-	favicon: z.url(),
-	author: z.strictObject({
-		name: z.string(),
-		url: z.url().optional(),
-		email: z.email().optional()
+export const Feed = s.object({
+	id: s.string,
+	title: s.string,
+	home_page_url: FeedUrl,
+	description: s.string,
+	icon: FeedUrl,
+	favicon: FeedUrl,
+	author: s.object({
+		name: s.string,
+		url: s.optional(FeedUrl),
+		email: s.optional(Email)
 	}),
 	// TODO date_modified for entire feed?
-	items: z.array(FeedItem),
-	atom: z.strictObject({
-		feed_url: z.url()
+	items: s.array(FeedItem),
+	atom: s.object({
+		feed_url: FeedUrl
 	})
 	// TODO should these be on the root?
 	// yes if the goal is to match the data structure of JSON Feed as much as possible,
@@ -52,7 +82,7 @@ export const Feed = z.strictObject({
 	// jsonfeed: {version, feed_url, expired?}
 	// TODO support RSS
 });
-export type Feed = z.infer<typeof Feed>;
+export type Feed = s.Infer<typeof Feed>;
 
 /**
  * Escapes a value for safe interpolation into XML text or a double-quoted

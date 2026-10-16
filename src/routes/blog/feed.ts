@@ -3,8 +3,8 @@
 import type { BlogFeed } from '#lib/blog.ts';
 
 export const feed: BlogFeed = {
-	id: 'https://blog.fuz.dev/',
 	title: "fuz_blog's blog",
+	id: 'https://blog.fuz.dev/',
 	home_page_url: 'https://blog.fuz.dev/blog',
 	description: 'blog software from scratch with SvelteKit',
 	icon: 'https://blog.fuz.dev/favicon.png',

@@ -31,9 +31,9 @@ gro update_post 1 --date 2024-07-10T16:04:49.688Z # update specific post
 gro update_post 1 --blog autoblog                 # update in a specific blog
 ```
 
-Arguments use `@fuzdev/fuz_schema` schemas for validation. The tasks
-auto-detect whether they're running in the fuz_blog library itself or in a
-consuming project, adjusting import paths accordingly.
+Arguments use `@fuzdev/fuz_schema` schemas for validation, as do the blog and
+feed schemas. The tasks auto-detect whether they're running in the fuz_blog
+library itself or in a consuming project, adjusting import paths accordingly.
 
 Blogs are declared in the consumer's `src/routes/blogs.ts`, which exports
 `blogs: Array<BlogConfig>` — one entry per blog with a route `dirname`, feed
@@ -63,6 +63,7 @@ extra flags (e.g. a `--model` field), write a small task that parses its own
 - Svelte 5 - component framework
 - SvelteKit - application framework
 - date-fns - date formatting
+- fuz_schema (@fuzdev/fuz_schema) - blog, feed, and task args schemas
 - fuz_css (@fuzdev/fuz_css) - semantic-first CSS framework and design system
 - fuz_ui (@fuzdev/fuz_ui) - UI components, docs system
 - fuz_mastodon (@fuzdev/fuz_mastodon) - Mastodon embedding for comments
@@ -127,15 +128,15 @@ that remain compatible with plain numbers.
 
 **BlogPostMetadata**: Author-defined metadata exported from each post's
 `<script module>`. Fields: `title`, `slug`, `date_published`, `date_modified`,
-`summary`, `tags?`, `comments?`. A loose Zod schema, so a consumer can add its
-own fields (they stay on the page's `post` and never reach the feed).
+`summary`, `tags?`, `comments?`. A fuz_schema `loose_object`, so a consumer can
+add its own fields (they stay on the page's `post` and never reach the feed).
 
 **BlogFeedItem**: The strict feed entry, with computed fields (`id`, `url`,
 `pathname`, `blog_post_id`) derived during `gro gen`.
 
 **BlogFeed**: Complete feed structure extending `Feed`, provided via
-`blog_feed_context`. Zod-validated at gen time (strict), so a malformed post or
-a leaked field fails `gro gen`.
+`blog_feed_context`. Validated at gen time (a strict `object`), so a malformed
+post or a leaked field fails `gro gen`.
 
 ### Code generation flow
 
@@ -156,8 +157,8 @@ types and data:
 - `blog.ts` - `BlogPostMetadata`, `BlogFeedItem`, `BlogPostId`, `BlogFeed`,
   `BlogConfig`, `BlogComments`, `blog_feed_context`, and the pure
   `resolve_blog_config()` / `resolve_blog_feed_item()`
-- `feed.ts` - `Feed`, `FeedItem` Zod schemas (JSON Feed 1.1 compatible),
-  `create_atom_feed()`
+- `feed.ts` - `Feed`, `FeedItem` fuz_schema schemas (JSON Feed 1.1 compatible),
+  `Datetime` (a UTC ISO datetime string), `create_atom_feed()`
 - `blog_helpers.ts` - node build helpers: `load_blogs_module()`,
   `collect_blog_post_ids()`, `load_blog_post_modules()`, `create_blog_post()`,
   `scaffold_blog_post()`
@@ -234,8 +235,9 @@ accessible from the context menu for theme customization.
 
 - **Hard-coded `src/routes/` path** - Route scanning assumes standard SvelteKit
   structure
-- **Partial test coverage** - `src/test/blog.test.ts` covers the post-item/URL
-  and blog-config logic; most components and tasks are untested
+- **Partial test coverage** - `src/test/blog.test.ts` and `feed.test.ts` cover
+  the post-item/URL and blog-config logic, the schemas, and Atom escaping; most
+  components and tasks are untested
 
 ## Project standards
 

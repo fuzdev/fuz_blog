@@ -1,7 +1,7 @@
 import type { Gen } from '@fuzdev/gro/gen.ts';
 import { join } from 'node:path';
 import { package_json_load } from '@fuzdev/gro/package_json.ts';
-import { z } from 'zod';
+import * as s from '@fuzdev/fuz_schema/schema.ts';
 
 import { create_atom_feed } from './feed.ts';
 import {
@@ -35,25 +35,25 @@ export const gen: Gen = async ({ origin_path }) => {
 
 		// loose input: validate the author metadata (extras pass through)
 		const items = modules.map((mod, i) => {
-			const parsed = BlogPostMetadata.safeParse(mod.post);
-			if (!parsed.success) {
+			const parsed = s.parse(BlogPostMetadata, mod.post);
+			if (!parsed.ok) {
 				throw Error(
-					`invalid post metadata at ${dirname}/${i + 1}: ${z.prettifyError(parsed.error)}`
+					`invalid post metadata at ${dirname}/${i + 1}:\n${parsed.issues.map(s.format_issue).join('\n')}`
 				);
 			}
-			return resolve_blog_feed_item(i + 1, dirname, blog.home_page_url, parsed.data, {
+			return resolve_blog_feed_item(i + 1, dirname, blog.home_page_url, parsed.value, {
 				slug_routes
 			});
 		});
 
 		// strict output: a leaked field or malformed entry fails here, at gen time
-		const parsed_feed = BlogFeed.safeParse({ ...blog, items });
-		if (!parsed_feed.success) {
+		const parsed_feed = s.parse(BlogFeed, { ...blog, items });
+		if (!parsed_feed.ok) {
 			throw Error(
-				`generated ${dirname} feed failed validation: ${z.prettifyError(parsed_feed.error)}`
+				`generated ${dirname} feed failed validation:\n${parsed_feed.issues.map(s.format_issue).join('\n')}`
 			);
 		}
-		const feed: BlogFeed = parsed_feed.data;
+		const feed: BlogFeed = parsed_feed.value;
 
 		outputs.push({
 			filename: join(dir, 'static', dirname, 'feed.xml'),
