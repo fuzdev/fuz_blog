@@ -1,5 +1,12 @@
 # @fuzdev/fuz_blog
 
+## 0.35.0
+
+### Minor Changes
+
+- **breaking** chore: peer '@fuzdev/fuz_schema' `^0.5.0`, which caps a parse at a hundred issues (a `SchemaError` lists the first ten and `and N more`), labels every issue beneath a `message`, and refuses a `pipe` action narrower than the step before it ([08e0505](https://github.com/fuzdev/fuz_blog/commit/08e0505))
+- chore: upgrade deps ([3e1f730](https://github.com/fuzdev/fuz_blog/commit/3e1f730))
+
 ## 0.34.0
 
 ### Minor Changes
