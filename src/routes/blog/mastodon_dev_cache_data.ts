@@ -23,7 +23,7 @@ export const mastodon_dev_cache_data: Array<[Url, FetchValueCacheItem]> = [
 				reblogs_count: 0,
 				favourites_count: 0,
 				edited_at: null,
-				content: '<p>ztack</p>',
+				content: '<p>zzz</p>',
 				reblog: null,
 				application: null,
 				account: {
@@ -119,7 +119,7 @@ export const mastodon_dev_cache_data: Array<[Url, FetchValueCacheItem]> = [
 						favourites_count: 0,
 						edited_at: '2024-11-20T03:53:07.473Z',
 						content:
-							'<p>fraid ztack haz ztuck</p><p>apologeez to future you and me for all the z&#39;s</p><p>at least it&#39;s a fine emoji 💤</p>',
+							'<p>fraid zzz haz ztuck</p><p>apologeez to future you and me for all the z&#39;s</p><p>at least it&#39;s a fine emoji 💤</p>',
 						reblog: null,
 						application: null,
 						account: {
