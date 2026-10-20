@@ -27,9 +27,7 @@
 		meta?: Snippet<[item: BlogFeedItem]>;
 		footer?: Snippet;
 		/**
-		 * Renders after `footer`, usually with `BlogPostComments`.
-		 * Importing `BlogPostComments.svelte` is what opts into the
-		 * `@fuzdev/fuz_mastodon` peer dependency.
+		 * Renders after `footer`, for a post's comments.
 		 */
 		comments?: Snippet<[item: BlogFeedItem]>;
 		children: Snippet;

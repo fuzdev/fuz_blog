@@ -38,15 +38,6 @@ describe('resolve_blog_feed_item', () => {
 		assert.deepEqual(item.tags, []);
 	});
 
-	test('passes comments through', () => {
-		const comments = { type: 'mastodon', url: 'https://mastodon.example/@a/1' } as const;
-		const item = resolve_blog_feed_item(1, 'blog', 'https://blog.fuz.dev/blog', {
-			...post,
-			comments
-		});
-		assert.deepEqual(item.comments, comments);
-	});
-
 	test('emits only BlogFeedItem fields even when the post carries extras', () => {
 		const item = resolve_blog_feed_item(1, 'blog', 'https://blog.fuz.dev/blog', {
 			...post,
@@ -127,14 +118,6 @@ describe('BlogPostMetadata', () => {
 		assert.deepEqual(parsed.issues.map(s.format_issue), [
 			'date_modified: expected an ISO datetime, received string'
 		]);
-	});
-
-	test('rejects unknown comment providers', () => {
-		const parsed = s.parse(BlogPostMetadata, {
-			...post,
-			comments: { type: 'bluesky', url: 'https://bsky.app/x' }
-		});
-		assert.ok(!parsed.ok);
 	});
 });
 

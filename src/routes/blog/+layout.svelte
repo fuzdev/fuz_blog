@@ -1,40 +1,12 @@
 <script lang="ts">
 	import Breadcrumb from '@fuzdev/fuz_ui/Breadcrumb.svelte';
-	import { DEV } from 'esm-env';
 	import type { Snippet } from 'svelte';
-	import {
-		MastodonCache,
-		mastodon_cache_context
-	} from '@fuzdev/fuz_mastodon/mastodon_cache.svelte.ts';
 
 	const {
 		children
 	}: {
 		children: Snippet;
 	} = $props();
-
-	if (DEV) {
-		mastodon_cache_context.set(
-			new MastodonCache(
-				async () => (await import('./mastodon_dev_cache_data.ts')).mastodon_dev_cache_data
-			)
-		);
-
-		// // To get the latest cache data, add these lines:
-		// if (typeof window !== 'undefined') {
-		// 	const mastodon_cache = mastodon_cache_context.get();
-		// 	// $inspect('data', JSON.stringify(Array.from(mastodon_cache.data.entries())));
-		// 	window.mastodon_cache = mastodon_cache;
-		// 	// Then run this in the console and then click into the document to make the clipboard work: (and disable the `reply_filter` if you want all the data)
-		// 	setTimeout(() => {
-		// 		const text = JSON.stringify(Array.from(mastodon_cache.data.entries()));
-		// 		console.log(text);
-		// 		void navigator.clipboard.writeText(text);
-		// 	}, 500);
-		// }
-		// Then paste the string into `src/routes/blog/mastodon_dev_cache_data.ts`
-		// as the exported `mastodon_dev_cache_data` value.
-	}
 
 	// TODO redirect from the numbers or render UI to navigate to it, maybe in `BlogPost`
 </script>

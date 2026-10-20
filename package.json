@@ -27,18 +27,12 @@
   },
   "peerDependencies": {
     "@fuzdev/fuz_css": ">=0.70.0",
-    "@fuzdev/fuz_mastodon": ">=0.45.1",
     "@fuzdev/fuz_schema": "^0.5.0",
     "@fuzdev/fuz_ui": ">=0.217.0",
     "@fuzdev/fuz_util": ">=0.77.0",
     "@fuzdev/gro": ">=0.220.0",
     "@sveltejs/kit": "^3",
     "svelte": "^5"
-  },
-  "peerDependenciesMeta": {
-    "@fuzdev/fuz_mastodon": {
-      "optional": true
-    }
   },
   "dependencies": {
     "date-fns": "^4"
@@ -48,7 +42,6 @@
     "@fuzdev/blake3-wasm": "^0.2.0",
     "@fuzdev/fuz_code": "^0.54.0",
     "@fuzdev/fuz_css": "^0.70.0",
-    "@fuzdev/fuz_mastodon": "^0.45.1",
     "@fuzdev/fuz_schema": "^0.5.0",
     "@fuzdev/fuz_ui": "^0.217.0",
     "@fuzdev/fuz_util": "^0.77.0",

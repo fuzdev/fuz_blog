@@ -7,17 +7,12 @@
 		date_published: '2024-07-10T16:04:49.688Z',
 		date_modified: '2024-07-15T18:27:36.477Z',
 		summary: 'fuz_blog is now a reusable library',
-		tags: ['blog software', 'sveltekit'],
-		comments: {
-			url: 'https://fosstodon.org/@ryanatkn/114422499177310600',
-			type: 'mastodon'
-		}
+		tags: ['blog software', 'sveltekit']
 	} satisfies BlogPostMetadata;
 </script>
 
 <script lang="ts">
 	import BlogPost from '#lib/BlogPost.svelte';
-	import BlogPostComments from '#lib/BlogPostComments.svelte';
 	import BlogPostFooter from '#routes/blog/BlogPostFooter.svelte';
 </script>
 
@@ -41,8 +36,5 @@
 	</section>
 	{#snippet footer()}
 		<BlogPostFooter />
-	{/snippet}
-	{#snippet comments(item)}
-		<BlogPostComments {item} />
 	{/snippet}
 </BlogPost>

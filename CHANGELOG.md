@@ -13,7 +13,7 @@
 
 - **breaking** feat: the blog and feed schemas are `@fuzdev/fuz_schema` schemas instead of Zod's, and `zod` is no longer a peer dep ([f65b7f5](https://github.com/fuzdev/fuz_blog/commit/f65b7f5))
 
-  - `Feed`, `FeedItem`, `BlogFeedMetadata`, `BlogFeed`, `BlogFeedItem`, `BlogPostMetadata`, `MastodonBlogComments`, and `BlogComments` are fuz_schema schemas with no `.parse`, `.safeParse`, `.shape`, `.omit`, or `.extend`: call `s.parse(BlogFeed, value)` for `{ok: true, value}` or `{ok: false, issues}` in place of `.safeParse`, and `s.parse_or_throw` (throwing `SchemaError`) in place of `.parse`; compose from an object schema's entries, its `def`; the inferred types are unchanged
+  - `Feed`, `FeedItem`, `BlogFeedMetadata`, `BlogFeed`, `BlogFeedItem`, and `BlogPostMetadata` are fuz_schema schemas with no `.parse`, `.safeParse`, `.shape`, `.omit`, or `.extend`: call `s.parse(BlogFeed, value)` for `{ok: true, value}` or `{ok: false, issues}` in place of `.safeParse`, and `s.parse_or_throw` (throwing `SchemaError`) in place of `.parse`; compose from an object schema's entries, its `def`; the inferred types are unchanged
   - raise `@fuzdev/fuz_schema` to `^0.4.0` , `@fuzdev/fuz_util` to `>=0.76.0`, and `@fuzdev/gro` to `>=0.219.0`, the new peer floors; a site that imports Zod only for fuz_blog can drop it
   - `feed.ts` exports `FeedDatetime` (unbranded, and unrelated to fuz_app's Zod `Datetime`), the schema of `date_published` and `date_modified`: a UTC ISO datetime like `2024-07-15T00:00:00.000Z`, as Zod 4.6's `z.iso.datetime()` accepts it, so a time without seconds such as `2024-07-15T00:00Z`, which Zod before 4.6 accepted, now fails
   - url fields are `FeedUrl`, exported from `feed.ts`: fuz_util's `Url`, which checks the text with `URL.canParse` and keeps it as written, refusing surrounding whitespace, so a url Zod trimmed, such as `' https://example.com'`, now fails rather than reach the generated feed
@@ -124,7 +124,7 @@
 
 ### Minor Changes
 
-- break: multi-blog support, mastodon decoupling, and task fixes ([#22](https://github.com/fuzdev/fuz_blog/pull/22))
+- break: multi-blog support, a comments snippet, and task fixes ([#22](https://github.com/fuzdev/fuz_blog/pull/22))
   - blogs are declared in a `src/routes/blogs.ts` registry exporting
     `blogs: Array<BlogConfig>`, replacing `src/routes/blog/blog.ts` — each entry
     is `{dirname, feed, slug_routes?, scaffold?}` (the `BlogModule` type is gone)
@@ -135,13 +135,8 @@
     the scaffolded post file per blog
   - `slug_routes: false` opts a blog out of generated slug redirect routes, and
     its post URLs become the integer id paths
-  - `BlogPost.svelte` no longer imports `@fuzdev/fuz_mastodon` or renders
-    comments itself, and its `separator` prop is gone — pass the new `comments`
-    snippet instead, e.g.
-    `{#snippet comments(item)}<BlogPostComments {item} />{/snippet}`; the new
-    `BlogPostComments.svelte` carries the mastodon rendering and separators, and
-    `@fuzdev/fuz_mastodon` is now an optional peer dependency (only needed if
-    you import `BlogPostComments.svelte`)
+  - `BlogPost.svelte` no longer renders comments itself, and its `separator`
+    prop is gone — pass the new `comments` snippet instead
   - removed the now-unused `to_pathname` helper from `util.ts` — the blog listing
     derives each post's route path from `item.url` directly
 
@@ -292,7 +287,6 @@
 
 ### Minor Changes
 
-- cache Mastodon data in dev ([#7](https://github.com/ryanatkn/fuz_blog/pull/7)) ([713d598](https://github.com/ryanatkn/fuz_blog/commit/713d598))
 - loosen peer deps temporarily ([367a921](https://github.com/ryanatkn/fuz_blog/commit/367a921))
 
 ## 0.6.0
@@ -301,7 +295,6 @@
 
 - upgrade deps ([e06cb14](https://github.com/ryanatkn/fuz_blog/commit/e06cb14))
   - `@ryanatkn/fuz@0.116.0` from `0.115.0`
-  - `@ryanatkn/fuz_mastodon@0.21.0` from `0.20.0`
   - `@ryanatkn/moss@0.9.0` from `0.8.0`
 
 ## 0.5.1
@@ -326,7 +319,7 @@
 
 ### Minor Changes
 
-- add automatic Mastodon comments ([#5](https://github.com/ryanatkn/fuz_blog/pull/5))
+- add automatic comments ([#5](https://github.com/ryanatkn/fuz_blog/pull/5))
 
 ## 0.3.0
 

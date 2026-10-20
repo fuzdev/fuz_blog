@@ -18,9 +18,8 @@
 			fuz_blog is a SvelteKit blog template and a library for adding blogs to existing projects.
 			Posts are Svelte components that export their own metadata, and <code>gro gen</code> validates
 			them to produce an Atom feed, a runtime feed module, and human-readable slug routes.
-			Everything is statically generated -- no database, no admin interface -- and comments are
-			opt-in through Mastodon. See the <TomeLink slug="api">API reference</TomeLink> for the full
-			surface.
+			Everything is statically generated -- no database, no admin interface. See the
+			<TomeLink slug="api">API reference</TomeLink> for the full surface.
 		</p>
 		<TomeSection>
 			<TomeSectionHeader text="Install" />

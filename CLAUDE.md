@@ -1,10 +1,9 @@
 # fuz_blog
 
-> Blog template with feed generation and Mastodon comments
+> Blog template with feed generation
 
 fuz_blog (`@fuzdev/fuz_blog`) is a SvelteKit blog template and reusable library
-for adding blogs to projects. It provides Atom feed generation and Mastodon
-comments integration.
+for adding blogs to projects. It provides Atom feed generation.
 
 For coding conventions, see Skill(fuz-stack).
 
@@ -46,9 +45,8 @@ active feed from `blog_feed_context`, so with more than one blog set each blog's
 feed in its own subtree — e.g. a `src/routes/<dirname>/+layout.svelte` calling
 `blog_feed_context.set(feed)` — rather than a single root layout for all of them.
 
-Comments are opt-in: `BlogPost.svelte` is mastodon-free and takes a `comments`
-snippet; `BlogPostComments.svelte` carries the Mastodon rendering, and
-importing it is what requires the optional `@fuzdev/fuz_mastodon` peer.
+Comments are opt-in: `BlogPost.svelte` takes a `comments` snippet that renders
+after `footer`; fuz_blog ships no comment provider.
 
 Wiring in a consumer: gro discovers `*.gen.ts`/`*.task.ts` only in the local
 `src/lib`, so a consuming project keeps thin local files that reuse fuz_blog's
@@ -66,7 +64,6 @@ extra flags (e.g. a `--model` field), write a small task that parses its own
 - fuz_schema (@fuzdev/fuz_schema) - blog, feed, and task args schemas
 - fuz_css (@fuzdev/fuz_css) - semantic-first CSS framework and design system
 - fuz_ui (@fuzdev/fuz_ui) - UI components, docs system
-- fuz_mastodon (@fuzdev/fuz_mastodon) - Mastodon embedding for comments
 
 ## Scope
 
@@ -74,7 +71,6 @@ fuz_blog is a **blog template and library**:
 
 - Blog post types and feed generation
 - Atom/RSS feed publishing
-- Mastodon comments integration
 - Reusable Svelte components for other blog projects
 
 ### What fuz_blog does NOT include
@@ -97,7 +93,6 @@ src/
 │   ├── feed.ts             # Feed, FeedItem types, create_atom_feed
 │   ├── util.ts             # format_date helper
 │   ├── BlogPost.svelte     # main post wrapper component
-│   ├── BlogPostComments.svelte # opt-in Mastodon comments (pulls the fuz_mastodon peer)
 │   ├── BlogPostList.svelte # prop-driven post listing (takes a `feed`)
 │   ├── BlogPostHeader.svelte
 │   ├── FeedItemDate.svelte # date formatting component
@@ -128,7 +123,7 @@ that remain compatible with plain numbers.
 
 **BlogPostMetadata**: Author-defined metadata exported from each post's
 `<script module>`. Fields: `title`, `slug`, `date_published`, `date_modified`,
-`summary`, `tags?`, `comments?`. A fuz_schema `loose_object`, so a consumer can
+`summary`, `tags?`. A fuz_schema `loose_object`, so a consumer can
 add its own fields (they stay on the page's `post` and never reach the feed).
 
 **BlogFeedItem**: The strict feed entry, with computed fields (`id`, `url`,
@@ -155,7 +150,7 @@ post or a leaked field fails `gro gen`.
 types and data:
 
 - `blog.ts` - `BlogPostMetadata`, `BlogFeedItem`, `BlogPostId`, `BlogFeed`,
-  `BlogConfig`, `BlogComments`, `blog_feed_context`, and the pure
+  `BlogConfig`, `blog_feed_context`, and the pure
   `resolve_blog_config()` / `resolve_blog_feed_item()`
 - `feed.ts` - `Feed`, `FeedItem` fuz_schema schemas (JSON Feed 1.1 compatible),
   `Datetime` (a UTC ISO datetime string), `create_atom_feed()`
@@ -167,7 +162,6 @@ types and data:
 components:
 
 - `BlogPost.svelte` - main post wrapper (header, `meta`, content, `footer`, `comments`)
-- `BlogPostComments.svelte` - opt-in Mastodon comments (pulls the fuz_mastodon peer)
 - `BlogPostList.svelte` - prop-driven post listing rendered from a `feed`
 - `BlogPostHeader.svelte` - title and metadata display
 - `FeedItemDate.svelte` - formatted date with "updated" indicator
@@ -188,7 +182,6 @@ Components use Svelte 5 runes API with optional `Snippet` props (`meta`,
 Uses the standardized context pattern from fuz_ui:
 
 - `blog_feed_context` - provides `BlogFeed` data throughout the app
-- `mastodon_cache_context` - (from fuz_mastodon) optional dev cache for comments
 
 Set `blog_feed_context` with the generated feed in the blog's `+layout.svelte`
 (per blog when there's more than one), or pass the feed/item directly as props
@@ -211,14 +204,6 @@ Import `BlogPost.svelte` and wrap your content, passing the `post` prop from
 your page's module exports.
 
 ## Development patterns
-
-### Mastodon dev cache
-
-For offline development with Mastodon comments, use the dev cache:
-
-1. Set `mastodon_cache_context` in your layout with cache data
-2. Capture live data by logging API responses during online development
-3. Store in `mastodon_dev_cache_data.ts` for consistent offline testing
 
 ### Settings and theming
 
@@ -251,4 +236,3 @@ accessible from the context menu for theme customization.
 
 - [`fuz_css`](../fuz_css/CLAUDE.md) - semantic-first CSS framework
 - [`fuz_ui`](../fuz_ui/CLAUDE.md) - UI components and docs system
-- [`fuz_mastodon`](../fuz_mastodon/CLAUDE.md) - Mastodon embedding

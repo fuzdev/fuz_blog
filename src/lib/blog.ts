@@ -17,16 +17,6 @@ const blog_feed_metadata_entries = omit(Feed.def, ['items']);
 export const BlogFeedMetadata = s.object(blog_feed_metadata_entries);
 export type BlogFeedMetadata = s.Infer<typeof BlogFeedMetadata>;
 
-export const MastodonBlogComments = s.object({
-	url: s.string,
-	type: s.literal('mastodon')
-});
-export type MastodonBlogComments = s.Infer<typeof MastodonBlogComments>;
-
-// TODO support other comment providers
-export const BlogComments = MastodonBlogComments;
-export type BlogComments = s.Infer<typeof BlogComments>;
-
 // Shared metadata fields, reused by the loose author input (`BlogPostMetadata`)
 // and the strict feed entry (`BlogFeedItem`).
 const blog_post_metadata_shape = {
@@ -35,8 +25,7 @@ const blog_post_metadata_shape = {
 	date_published: FeedDatetime, // TODO maybe calculated instead of manually defined?
 	date_modified: FeedDatetime, // TODO maybe calculated instead of manually defined?
 	summary: s.string,
-	tags: s.optional(s.array(s.string)),
-	comments: s.optional(BlogComments)
+	tags: s.optional(s.array(s.string))
 };
 
 /**
@@ -196,7 +185,6 @@ export const resolve_blog_feed_item = (
 		date_published: post.date_published,
 		date_modified: post.date_modified,
 		summary: post.summary,
-		tags: post.tags ?? [],
-		comments: post.comments
+		tags: post.tags ?? []
 	};
 };
