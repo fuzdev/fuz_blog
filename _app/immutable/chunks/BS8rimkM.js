@@ -1,1 +1,0 @@
-var e=Object.freeze([]),t=e=>Array.isArray(e)?e:[e];export{t as n,e as t};

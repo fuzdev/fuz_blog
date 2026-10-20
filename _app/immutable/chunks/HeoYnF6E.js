@@ -1,1 +1,0 @@
-import{G as e,O as t,lt as n,st as r}from"./DjwFbMpD.js";import{a as i}from"./DbxpBvwR.js";var a=class{load_data;#e=n();get data(){return e(this.#e)}set data(e){r(this.#e,e)}constructor(e,n=!0){this.load_data=e,n&&t(this.load)}load=async()=>{let e=await this.load_data();this.data=e&&new Map(e)}},o=i();export{o as n,a as t};
