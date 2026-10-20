@@ -1,5 +1,12 @@
 # @fuzdev/fuz_blog
 
+## 0.36.0
+
+### Minor Changes
+
+- deps: bump fuz_ui 0.218.0 ([1d1411f](https://github.com/fuzdev/fuz_blog/commit/1d1411f))
+- break: remove Mastodon comments: `BlogPostComments.svelte`, the `comments` post metadata field, `BlogComments` and `MastodonBlogComments`, and the optional `@fuzdev/fuz_mastodon` peer dep are gone; the `BlogPost` `comments` snippet stays for rendering your own ([832b2e9](https://github.com/fuzdev/fuz_blog/commit/832b2e9))
+
 ## 0.35.0
 
 ### Minor Changes
