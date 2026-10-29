@@ -54,9 +54,12 @@ export const FeedItem = s.object({
 export type FeedItem = s.Infer<typeof FeedItem>;
 
 /**
- * This is designed to extend JSON Feed 1.1 with namespaced data for other specs like Atom.
- * It's still a work in progress, and I'll add features as I need them,
- * and eventually this will be extracted to a standalone library.
+ * A blog's feed data, rendered to Atom by `create_atom_feed`. Field names follow
+ * JSON Feed 1.1 where the two overlap, but the shape is not a conformant JSON Feed:
+ * it has a feed-level `id` (Atom's), a single `author` with `email`, the Atom
+ * `feed_url` under an unprefixed `atom` key, no `version`, and items with a
+ * `summary` but no `content_html` or `content_text`. Publishing `feed.json`
+ * means mapping to the spec, not serializing this as is.
  * https://www.jsonfeed.org/version/1.1/
  */
 export const Feed = s.object({

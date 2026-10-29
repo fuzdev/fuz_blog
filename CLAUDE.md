@@ -152,8 +152,9 @@ types and data:
 - `blog.ts` - `BlogPostMetadata`, `BlogFeedItem`, `BlogPostId`, `BlogFeed`,
   `BlogConfig`, `blog_feed_context`, and the pure
   `resolve_blog_config()` / `resolve_blog_feed_item()`
-- `feed.ts` - `Feed`, `FeedItem` fuz_schema schemas (JSON Feed 1.1 compatible),
-  `Datetime` (a UTC ISO datetime string), `create_atom_feed()`
+- `feed.ts` - `Feed`, `FeedItem` fuz_schema schemas (JSON Feed 1.1 field
+  names, not a conformant JSON Feed), `FeedDatetime` (a UTC ISO datetime
+  string), `FeedUrl`, `create_atom_feed()`
 - `blog_helpers.ts` - node build helpers: `load_blogs_module()`,
   `collect_blog_post_ids()`, `load_blog_post_modules()`, `create_blog_post()`,
   `scaffold_blog_post()`
