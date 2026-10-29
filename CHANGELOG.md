@@ -1,5 +1,20 @@
 # @fuzdev/fuz_blog
 
+## 0.37.0
+
+### Minor Changes
+
+- Update dependencies (BREAKING CHANGES) ([9d19986](https://github.com/fuzdev/fuz_blog/commit/9d19986))
+
+  Breaking dependency changes:
+
+  - @fuzdev/fuz_util: 0.78.0 → 0.79.0 (minor)
+  - @fuzdev/fuz_css: 0.71.1 → 0.72.0 (minor)
+  - @fuzdev/gro: 0.222.0 → 0.223.0 (minor)
+  - @fuzdev/fuz_ui: 0.220.0 → 0.221.0 (minor)
+
+- chore: upgrade fuz_css 0.71.1, fuz_ui 0.220.0, fuz_util 0.78.0 and gro 0.222.0 ([687aa87](https://github.com/fuzdev/fuz_blog/commit/687aa87))
+
 ## 0.36.0
 
 ### Minor Changes
