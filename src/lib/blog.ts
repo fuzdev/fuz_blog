@@ -61,14 +61,14 @@ export interface BlogConfig {
 	slug_routes?: boolean;
 
 	/**
-	 * Customizes the post file `gro post` scaffolds for this blog.
+	 * Customizes the post file `gro task src/lib/post.task.ts` scaffolds for this blog.
 	 * Defaults to `scaffold_blog_post`.
 	 */
 	scaffold?: (options: BlogPostScaffoldOptions) => string;
 }
 
 /**
- * The options `gro post` passes to a `BlogConfig` `scaffold`.
+ * The options `gro task src/lib/post.task.ts` passes to a `BlogConfig` `scaffold`.
  */
 export interface BlogPostScaffoldOptions {
 	title: string;

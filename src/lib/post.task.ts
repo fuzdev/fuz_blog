@@ -37,7 +37,9 @@ export const task: Task<Args> = {
 		} = args;
 
 		if (!raw_title) {
-			throw new TaskError('post title is required, e.g. `gro post "Hello world"`');
+			throw new TaskError(
+				'post title is required, e.g. `gro task src/lib/post.task.ts "Hello world"`'
+			);
 		}
 
 		const dir = process.cwd();

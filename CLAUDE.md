@@ -15,19 +15,19 @@ gro typecheck    # typecheck only
 gro test         # run tests with vitest
 gro gen          # regenerate .gen files (feed.xml, slug routes, feed.ts)
 gro build        # build for production
-gro post "Title" # scaffold a new blog post
-gro update_post  # update date_modified on existing post
+gro task src/lib/post.task.ts "Title" # scaffold a new blog post
+gro task src/lib/update_post.task.ts  # update date_modified on existing post
 ```
 
 ### Task arguments
 
-Both `gro post` and `gro update_post` support additional flags:
+Both tasks support additional flags:
 
 ```bash
-gro post "Title" --date 2024-07-10T16:04:49.688Z  # custom date
-gro post "Title" --blog autoblog                  # target a specific registered blog
-gro update_post 1 --date 2024-07-10T16:04:49.688Z # update specific post
-gro update_post 1 --blog autoblog                 # update in a specific blog
+gro task src/lib/post.task.ts "Title" --date 2024-07-10T16:04:49.688Z  # custom date
+gro task src/lib/post.task.ts "Title" --blog autoblog                  # target a specific registered blog
+gro task src/lib/update_post.task.ts 1 --date 2024-07-10T16:04:49.688Z # update specific post
+gro task src/lib/update_post.task.ts 1 --blog autoblog                 # update in a specific blog
 ```
 
 Arguments use `@fuzdev/fuz_schema` schemas for validation, as do the blog and
@@ -37,8 +37,9 @@ library itself or in a consuming project, adjusting import paths accordingly.
 Blogs are declared in the consumer's `src/routes/blogs.ts`, which exports
 `blogs: Array<BlogConfig>` — one entry per blog with a route `dirname`, feed
 metadata, optional `slug_routes: false` (integer-id post URLs, no generated
-slug routes), and an optional `scaffold` function customizing what `gro post`
-generates for that blog. `--blog` defaults to the first registered entry.
+slug routes), and an optional `scaffold` function customizing what
+`gro task src/lib/post.task.ts` generates for that blog. `--blog` defaults to
+the first registered entry.
 
 Each blog generates its own `src/routes/<dirname>/feed.ts`. Components read the
 active feed from `blog_feed_context`, so with more than one blog set each blog's
@@ -48,11 +49,13 @@ feed in its own subtree — e.g. a `src/routes/<dirname>/+layout.svelte` calling
 Comments are opt-in: `BlogPost.svelte` takes a `comments` snippet that renders
 after `footer`; fuz_blog ships no comment provider.
 
-Wiring in a consumer: gro discovers `*.gen.ts`/`*.task.ts` only in the local
-`src/lib`, so a consuming project keeps thin local files that reuse fuz_blog's
-logic — `src/lib/blog.gen.ts` can be
+Wiring in a consumer: gro discovers `*.gen.ts` only in the local project and
+runs a project task only by its path, so a consuming project keeps thin local
+files that reuse fuz_blog's logic — `src/lib/blog.gen.ts` can be
 `export {gen} from '@fuzdev/fuz_blog/blog.gen.ts'`, and `src/lib/post.task.ts`
-can re-export or wrap fuz_blog's task. To scaffold a custom post shape with
+can re-export or wrap fuz_blog's task
+(`export * from '@fuzdev/fuz_blog/post.task.ts'`), run as
+`gro task src/lib/post.task.ts`. To scaffold a custom post shape with
 extra flags (e.g. a `--model` field), write a small task that parses its own
 `Args` and calls `create_blog_post` with its own `scaffold` closure.
 
@@ -97,8 +100,8 @@ src/
 │   ├── BlogPostHeader.svelte
 │   ├── FeedItemDate.svelte # date formatting component
 │   ├── HashLink.svelte     # anchor link with hover icon
-│   ├── post.task.ts        # gro post task
-│   └── update_post.task.ts # gro update_post task
+│   ├── post.task.ts        # post scaffolding task
+│   └── update_post.task.ts # date_modified update task
 ├── test/                   # test files (not co-located)
 └── routes/
     ├── blogs.ts            # blogs registry (Array<BlogConfig>)
@@ -170,8 +173,8 @@ components:
 
 tasks:
 
-- `post.task.ts` - `gro post "Title"` scaffolds new posts with sequential ID
-- `update_post.task.ts` - `gro update_post [id]` updates `date_modified`
+- `post.task.ts` - `gro task src/lib/post.task.ts "Title"` scaffolds new posts with sequential ID
+- `update_post.task.ts` - `gro task src/lib/update_post.task.ts [id]` updates `date_modified`
 
 ### Svelte 5 patterns
 
@@ -193,7 +196,7 @@ to `BlogPostList` / `BlogPost`.
 Run the task:
 
 ```bash
-gro post "My Post Title"
+gro task src/lib/post.task.ts "My Post Title"
 ```
 
 This creates `/src/routes/blog/[next_id]/+page.svelte` with scaffolded metadata

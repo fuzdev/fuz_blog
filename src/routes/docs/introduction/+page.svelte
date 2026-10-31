@@ -53,7 +53,8 @@ export const blogs: Array<BlogConfig> = [
 			/>
 			<p>
 				See <DeclarationLink name="BlogConfig" /> for the rest of the options, like disabling
-				generated slug routes or customizing what <code>gro post</code> scaffolds.
+				generated slug routes or customizing what <code>gro task src/lib/post.task.ts</code>
+				scaffolds.
 			</p>
 		</TomeSection>
 		<TomeSection>
@@ -89,18 +90,27 @@ ${'<'}script lang="ts">
 		</TomeSection>
 		<TomeSection>
 			<TomeSectionHeader text="Create a new post" />
+			<p>
+				Gro runs a project task by its path, so keep a one-line local task file that re-exports
+				fuz_blog's, and the same for <code>update_post.task.ts</code>:
+			</p>
+			<Code
+				lang="ts"
+				content={`// src/lib/post.task.ts
+export * from '@fuzdev/fuz_blog/post.task.ts';`}
+			/>
 			<Code
 				lang="bash"
-				content={`$ gro post "Some post title"
-$ gro post --help`}
+				content={`$ gro task src/lib/post.task.ts "Some post title"
+$ gro task src/lib/post.task.ts --help`}
 			/>
 		</TomeSection>
 		<TomeSection>
 			<TomeSectionHeader text="Update an existing post" />
 			<Code
 				lang="bash"
-				content={`$ gro update_post 1
-$ gro update_post --help`}
+				content={`$ gro task src/lib/update_post.task.ts 1
+$ gro task src/lib/update_post.task.ts --help`}
 			/>
 		</TomeSection>
 	</section>

@@ -12,7 +12,7 @@ import type {
 	BlogsModule
 } from './blog.ts';
 
-// Node-only helpers for the `gro post`/`gro gen` build tooling. The pure blog
+// Node-only helpers for the `gro task src/lib/post.task.ts`/`gro gen` build tooling. The pure blog
 // logic (`resolve_blog_config`, `resolve_blog_feed_item`) lives in `blog.ts` so
 // it stays free of node and gro imports.
 
@@ -34,7 +34,7 @@ export const load_blogs_module = async (dir: string): Promise<BlogsModule> => {
 };
 
 /**
- * The default post scaffold for `gro post`.
+ * The default post scaffold for `gro task src/lib/post.task.ts`.
  * Override per-blog with `BlogConfig.scaffold`.
  */
 export const scaffold_blog_post = (options: BlogPostScaffoldOptions): string => {
