@@ -1,0 +1,1 @@
+var e=`https://www.fuz.dev/`;export{e as t};
