@@ -14,11 +14,11 @@ export const feed: BlogFeed = {
 	items: [
 		{
 			id: 'https://blog.fuz.dev/blog/1',
-			url: 'https://blog.fuz.dev/blog/hello-fuz-blog',
-			pathname: '/blog/hello-fuz-blog',
+			url: 'https://blog.fuz.dev/blog/1-hello-fuz-blog',
+			pathname: '/blog/1-hello-fuz-blog',
 			blog_post_id: 1,
-			title: 'Hello fuz_blog',
 			slug: 'hello-fuz-blog',
+			title: 'Hello fuz_blog',
 			date_published: '2024-07-10T16:04:49.688Z',
 			date_modified: '2024-07-15T18:27:36.477Z',
 			summary: 'fuz_blog is now a reusable library',

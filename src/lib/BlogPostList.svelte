@@ -16,7 +16,7 @@
 	<ol class="panel" reversed>
 		{#each items as item (item.id)}
 			<li class="blog-card">
-				<!-- every post `pathname` is a literal app route (numeric or slug), and kit's `Path` drops the leading `/` -->
+				<!-- every post `pathname` is a literal app route, and kit's `Path` drops the leading `/` -->
 				<a href={resolve(item.pathname.slice(1) as Path)}>{item.title}</a>
 				<div class="date"><FeedItemDate {item} /></div>
 			</li>

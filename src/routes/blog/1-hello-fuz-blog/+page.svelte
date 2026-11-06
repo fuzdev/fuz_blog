@@ -3,7 +3,6 @@
 
 	export const post = {
 		title: 'Hello fuz_blog',
-		slug: 'hello-fuz-blog',
 		date_published: '2024-07-10T16:04:49.688Z',
 		date_modified: '2024-07-15T18:27:36.477Z',
 		summary: 'fuz_blog is now a reusable library',

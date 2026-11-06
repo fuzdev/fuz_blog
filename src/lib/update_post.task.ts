@@ -1,9 +1,11 @@
 import { TaskError, type Task } from '@fuzdev/gro';
 import * as s from '@fuzdev/fuz_schema/schema.ts';
+import { to_error_message } from '@fuzdev/fuz_util/error.ts';
 import { meta } from '@fuzdev/fuz_schema/meta.ts';
 
 import { load_blogs_module, update_blog_post } from './blog_helpers.ts';
 import { resolve_blog_config } from './blog.ts';
+import { FeedDatetime } from './feed.ts';
 
 /** @nodocs */
 export const Args = s.object({
@@ -17,7 +19,11 @@ export const Args = s.object({
 			description: 'dirname of the target blog, defaulting to the first registered'
 		})
 	),
-	date: s.optional(meta(s.string, { description: "the post's date_modified" }))
+	date: s.optional(
+		meta(FeedDatetime, {
+			description: "the post's date_modified, a UTC ISO datetime, defaulting to now"
+		})
+	)
 });
 export type Args = s.Infer<typeof Args>;
 
@@ -45,7 +51,10 @@ export const task: Task<Args> = {
 		const { blogs } = await load_blogs_module(dir);
 		const config = resolve_blog_config(blogs, blog_dirname);
 
-		await update_blog_post({ dir, config, blog_post_id, date });
+		// a missing post or an unmatched `date_modified` is a user error, so report it without a stack
+		await update_blog_post({ dir, config, blog_post_id, date }).catch((err: unknown) => {
+			throw new TaskError(to_error_message(err));
+		});
 
 		await invoke_task('gen');
 	}

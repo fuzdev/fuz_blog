@@ -7,8 +7,6 @@
 	}: {
 		children: Snippet;
 	} = $props();
-
-	// TODO redirect from the numbers or render UI to navigate to it, maybe in `BlogPost`
 </script>
 
 <div class="column align-items:center mt_xl3">

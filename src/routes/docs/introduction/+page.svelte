@@ -16,9 +16,10 @@
 	<section>
 		<p>
 			fuz_blog is a SvelteKit blog template and a library for adding blogs to existing projects.
-			Posts are Svelte components that export their own metadata, and <code>gro gen</code> validates
-			them to produce an Atom feed, a runtime feed module, and human-readable slug routes.
-			Everything is statically generated -- no database, no admin interface. See the
+			Each post is a SvelteKit route in an <code>&lt;id&gt;-&lt;slug&gt;</code> directory that
+			exports its own metadata, and <code>gro gen</code> validates them to produce an Atom feed, a
+			runtime feed module, and a route redirecting each bare post id to its post. Everything is
+			statically generated -- no database, no admin interface. See the
 			<TomeLink slug="api">API reference</TomeLink> for the full surface.
 		</p>
 		<TomeSection>
@@ -52,10 +53,40 @@ export const blogs: Array<BlogConfig> = [
 ];`}
 			/>
 			<p>
-				See <DeclarationLink name="BlogConfig" /> for the rest of the options, like disabling
-				generated slug routes or customizing what <code>gro task src/lib/post.task.ts</code>
-				scaffolds.
+				See <DeclarationLink name="BlogConfig" /> for the rest of the options, like customizing what
+				<code>gro task src/lib/post.task.ts</code> scaffolds.
 			</p>
+		</TomeSection>
+		<TomeSection>
+			<TomeSectionHeader text="Post directories" />
+			<p>
+				Each post lives at
+				<code>src/routes/&lt;dirname&gt;/&lt;id&gt;-&lt;slug&gt;/+page.svelte</code>, like
+				<code>src/routes/blog/1-hello-world/+page.svelte</code>, so its URL is its directory,
+				<code>/blog/1-hello-world</code>, and the route is yours to extend with a
+				<code>+page.ts</code> or colocated assets. The id is a positive integer and the slug is
+				lowercase letters and digits joined by single hyphens. Ids may have gaps but not repeats.
+			</p>
+			<p>
+				For a blog with posts, <code>gro gen</code> also writes
+				<code>src/routes/&lt;dirname&gt;/[post=blog_post_id]/+page.ts</code>, which redirects
+				<code>/blog/1</code> to <code>/blog/1-hello-world</code>. Each feed entry's id is that id
+				URL, stable across slug changes, so after renaming a post's directory its id URL still
+				resolves but its old slug URL does not.
+			</p>
+			<p>
+				Register the route's <code>blog_post_id</code> param matcher in <code>src/params.ts</code>,
+				adding it to your <code>defineParams</code> call if you already have one, so the route only
+				matches bare ids:
+			</p>
+			<Code
+				lang="ts"
+				content={`// src/params.ts
+import {defineParams} from '@sveltejs/kit/params';
+import {blog_post_id_param} from '@fuzdev/fuz_blog/blog_post_id.ts';
+
+export const params = defineParams({blog_post_id: blog_post_id_param});`}
+			/>
 		</TomeSection>
 		<TomeSection>
 			<TomeSectionHeader text="Publish the feed" />
@@ -102,6 +133,7 @@ export * from '@fuzdev/fuz_blog/post.task.ts';`}
 			<Code
 				lang="bash"
 				content={`$ gro task src/lib/post.task.ts "Some post title"
+$ gro task src/lib/post.task.ts "Some post title" --slug custom-slug
 $ gro task src/lib/post.task.ts --help`}
 			/>
 		</TomeSection>

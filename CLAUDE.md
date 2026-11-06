@@ -13,7 +13,7 @@ For coding conventions, see Skill(fuz-stack).
 gro check        # typecheck, test, lint, format check (run before committing)
 gro typecheck    # typecheck only
 gro test         # run tests with vitest
-gro gen          # regenerate .gen files (feed.xml, slug routes, feed.ts)
+gro gen          # regenerate .gen files (feed.xml, feed.ts, redirect route)
 gro build        # build for production
 gro task src/lib/post.task.ts "Title" # scaffold a new blog post
 gro task src/lib/update_post.task.ts  # update date_modified on existing post
@@ -26,6 +26,7 @@ Both tasks support additional flags:
 ```bash
 gro task src/lib/post.task.ts "Title" --date 2024-07-10T16:04:49.688Z  # custom date
 gro task src/lib/post.task.ts "Title" --blog autoblog                  # target a specific registered blog
+gro task src/lib/post.task.ts "Title" --slug custom-slug               # override the slug derived from the title
 gro task src/lib/update_post.task.ts 1 --date 2024-07-10T16:04:49.688Z # update specific post
 gro task src/lib/update_post.task.ts 1 --blog autoblog                 # update in a specific blog
 ```
@@ -36,12 +37,25 @@ library itself or in a consuming project, adjusting import paths accordingly.
 
 Blogs are declared in the consumer's `src/routes/blogs.ts`, which exports
 `blogs: Array<BlogConfig>` — one entry per blog with a route `dirname`, feed
-metadata, optional `slug_routes: false` (integer-id post URLs, no generated
-slug routes), and an optional `scaffold` function customizing what
+metadata, and an optional `scaffold` function customizing what
 `gro task src/lib/post.task.ts` generates for that blog. `--blog` defaults to
 the first registered entry.
 
-Each blog generates its own `src/routes/<dirname>/feed.ts`. Components read the
+Each blog generates its own `src/routes/<dirname>/feed.ts` and, once it has
+posts, `src/routes/<dirname>/[post=blog_post_id]/+page.ts`. That route's
+`blog_post_id` matcher must be registered in the app's `src/params.ts` (SvelteKit's
+default `files.params` location; one file for all blogs, and SvelteKit fails
+the build naming the matcher when it's missing), added to the existing
+`defineParams` call if the app already has one:
+
+```ts
+import {defineParams} from '@sveltejs/kit/params';
+import {blog_post_id_param} from '@fuzdev/fuz_blog/blog_post_id.ts';
+
+export const params = defineParams({blog_post_id: blog_post_id_param});
+```
+
+Components read the
 active feed from `blog_feed_context`, so with more than one blog set each blog's
 feed in its own subtree — e.g. a `src/routes/<dirname>/+layout.svelte` calling
 `blog_feed_context.set(feed)` — rather than a single root layout for all of them.
@@ -90,9 +104,11 @@ fuz_blog is a **blog template and library**:
 ```
 src/
 ├── lib/                    # exportable library code
-│   ├── blog.ts             # types, blog_feed_context, resolve_blog_config, resolve_blog_feed_item
-│   ├── blog_helpers.ts     # node build helpers: load_blogs_module, collect_blog_post_ids, create_blog_post
-│   ├── blog.gen.ts         # generates feed.xml, feed.ts, slug routes
+│   ├── blog.ts             # types, blog_feed_context, post dirname parsing, resolve_blog_feed_item
+│   ├── blog_helpers.ts     # node build helpers: load_blogs_module, collect_blog_post_dirs, create_blog_post
+│   ├── blog_post_id.ts     # post id grammar + the blog_post_id param matcher
+│   ├── blog_post_redirect.ts # entries + load for the generated redirect route
+│   ├── blog.gen.ts         # generates feed.xml, feed.ts, redirect route
 │   ├── feed.ts             # Feed, FeedItem types, create_atom_feed
 │   ├── util.ts             # format_date helper
 │   ├── BlogPost.svelte     # main post wrapper component
@@ -109,28 +125,46 @@ src/
     │   ├── feed.ts         # generated BlogFeed object
     │   ├── +layout.svelte  # sets blog_feed_context for this blog's subtree
     │   ├── +page.svelte    # blog listing page (uses BlogPostList)
-    │   ├── 1/+page.svelte  # numeric post routes
-    │   └── hello-fuz-blog/ # generated slug routes (re-export the numeric route)
+    │   ├── 1-hello-fuz-blog/ # a post, one `<id>-<slug>` directory each
+    │   └── [post=blog_post_id]/+page.ts # generated redirect from `/blog/<id>` to the post
     └── docs/               # documentation pages
 ```
 
 ### Core concepts
 
-**Numeric ID + Slug routing**: Posts are stored with numeric IDs
-(`/blog/1/+page.svelte`) for stable paths. The gen system creates slug-based
-routes (`/blog/hello-fuz-blog/`) that import from the numeric routes, enabling
-human-readable URLs without path coupling.
+**`<id>-<slug>` post directories**: Each post is a real route at
+`src/routes/<dirname>/<id>-<slug>/+page.svelte` (e.g. `blog/1-hello-fuz-blog/`),
+so its canonical URL is its directory and the author keeps full control of the
+route (its own `+page.ts`, colocated assets). The id is a positive integer
+without leading zeros, and the slug is lowercase ASCII letters and digits in
+hyphen-separated runs; the slug comes only from the directory name. Any blog
+subdirectory starting with a digit must match `<id>-<slug>` or `gro gen` fails
+(so a bare `1/` fails); other subdirectories are ignored. Ids may
+have gaps and must be unique; new posts take the highest id plus one.
+
+**Redirect route**: for a blog with posts, `gro gen` writes
+`<dirname>/[post=blog_post_id]/+page.ts`, whose `entries` list every post's bare
+id and whose `load` redirects `/blog/1` to `/blog/1-hello-fuz-blog` (308, a
+meta-refresh page when prerendered) and 404s an unknown id. The `blog_post_id`
+matcher (`blog_post_id_param`) admits only bare ids, so client-side navigation
+to other paths under the blog, like static files, never reaches the route. A
+blog without posts gets no redirect route, since prerendering rejects a dynamic
+route with no entries; gen can't delete files, so it fails asking you to delete a
+leftover one. The logic lives in `blog_post_redirect.ts` so the generated file
+stays tiny.
 
 **BlogPostId**: Uses `Flavored<number, 'BlogPostId'>` for type-safe post IDs
 that remain compatible with plain numbers.
 
 **BlogPostMetadata**: Author-defined metadata exported from each post's
-`<script module>`. Fields: `title`, `slug`, `date_published`, `date_modified`,
+`<script module>`. Fields: `title`, `date_published`, `date_modified`,
 `summary`, `tags?`. A fuz_schema `loose_object`, so a consumer can
 add its own fields (they stay on the page's `post` and never reach the feed).
 
 **BlogFeedItem**: The strict feed entry, with computed fields (`id`, `url`,
-`pathname`, `blog_post_id`) derived during `gro gen`.
+`pathname`, `blog_post_id`, `slug`) derived during `gro gen`. `id` is
+`<home_page_url>/<id>` (stable across slug changes, resolving via the redirect),
+`url` is `<home_page_url>/<id>-<slug>`, and `pathname` is `/<dirname>/<id>-<slug>`.
 
 **BlogFeed**: Complete feed structure extending `Feed`, provided via
 `blog_feed_context`. Validated at gen time (a strict `object`), so a malformed
@@ -140,32 +174,47 @@ post or a leaked field fails `gro gen`.
 
 `blog.gen.ts` runs during `gro gen`:
 
-1. Scans `/src/routes/blog/` for sequential numeric directories (1, 2, 3...)
+1. Scans `/src/routes/blog/` for `<id>-<slug>` post directories, sorted by id
 2. Loads and validates each post's `BlogPostMetadata` from module exports
 3. Generates three outputs:
    - `/static/blog/feed.xml` - Atom feed for RSS readers
    - `/src/routes/blog/feed.ts` - serialized BlogFeed object for runtime
-   - `/src/routes/blog/[slug]/+page.svelte` - slug route files that re-export
-     from numeric
+   - `/src/routes/blog/[post=blog_post_id]/+page.ts` - redirects bare post ids
+     to their posts, only when the blog has posts
+
+The pure part, from loaded posts to outputs, is `create_blog_gen_outputs()` in
+`blog_helpers.ts`.
 
 ### Key library files
 
 types and data:
 
-- `blog.ts` - `BlogPostMetadata`, `BlogFeedItem`, `BlogPostId`, `BlogFeed`,
-  `BlogConfig`, `blog_feed_context`, and the pure
+- `blog.ts` - `BlogPostMetadata`, `BlogFeedItem`, `BlogPostId`, `BlogPostDir`,
+  `BlogFeed`, `BlogConfig`, `blog_feed_context`, and the pure
+  `parse_blog_post_dirname()` / `resolve_blog_post_dirs()` /
   `resolve_blog_config()` / `resolve_blog_feed_item()`
+- `blog_post_id.ts` - `BLOG_POST_ID_SOURCE`, `is_blog_post_id_param()`, and the
+  `blog_post_id_param` matcher, dependency-free since SvelteKit loads matchers
+  eagerly on the client
+- `blog_post_redirect.ts` - `find_blog_feed_item_by_param()`,
+  `to_blog_post_redirect_entries()`, and `blog_post_redirect()` for the
+  generated redirect route (imports `$app/paths`, so SvelteKit-only)
 - `feed.ts` - `Feed`, `FeedItem` fuz_schema schemas (JSON Feed 1.1 field
   names, not a conformant JSON Feed), `FeedDatetime` (a UTC ISO datetime
   string), `FeedUrl`, `create_atom_feed()`
 - `blog_helpers.ts` - node build helpers: `load_blogs_module()`,
-  `collect_blog_post_ids()`, `load_blog_post_modules()`, `create_blog_post()`,
-  `scaffold_blog_post()`
+  `collect_blog_post_dirs()`, `load_blog_post_modules()`, `create_blog_post()`,
+  `update_blog_post()`, `scaffold_blog_post()`, `to_blog_post_slug()`,
+  `create_blog_gen_outputs()`, `to_blog_post_redirect_route_path()`,
+  `BLOG_POST_REDIRECT_ROUTE_DIRNAME`
 - `util.ts` - `format_date()` for consistent date formatting
 
 components:
 
-- `BlogPost.svelte` - main post wrapper (header, `meta`, content, `footer`, `comments`)
+- `BlogPost.svelte` - main post wrapper (header, `meta`, content, `footer`,
+  `comments`); finds its feed item by matching the current route id to an
+  item's `pathname`, or takes an explicit `item` to render a post off its own
+  route; emits a canonical link only on the post's own route
 - `BlogPostList.svelte` - prop-driven post listing rendered from a `feed`
 - `BlogPostHeader.svelte` - title and metadata display
 - `FeedItemDate.svelte` - formatted date with "updated" indicator
@@ -173,8 +222,10 @@ components:
 
 tasks:
 
-- `post.task.ts` - `gro task src/lib/post.task.ts "Title"` scaffolds new posts with sequential ID
-- `update_post.task.ts` - `gro task src/lib/update_post.task.ts [id]` updates `date_modified`
+- `post.task.ts` - `gro task src/lib/post.task.ts "Title"` scaffolds a new post
+  at `<id>-<slug>/`, the slug from the title or `--slug`
+- `update_post.task.ts` - `gro task src/lib/update_post.task.ts [id]` updates `date_modified`,
+  failing unless exactly one `date_modified` value matches
 
 ### Svelte 5 patterns
 
@@ -199,8 +250,9 @@ Run the task:
 gro task src/lib/post.task.ts "My Post Title"
 ```
 
-This creates `/src/routes/blog/[next_id]/+page.svelte` with scaffolded metadata
-and runs `gro gen` to update feed and routes.
+This creates `/src/routes/blog/<next_id>-<slug>/+page.svelte` with scaffolded
+metadata and runs `gro gen` to update the feed and the redirect route. To change
+a post's slug, rename its directory and run `gro gen`; its id URL keeps working.
 
 ## Using as a library
 
@@ -224,9 +276,10 @@ accessible from the context menu for theme customization.
 
 - **Hard-coded `src/routes/` path** - Route scanning assumes standard SvelteKit
   structure
-- **Partial test coverage** - `src/test/blog.test.ts` and `feed.test.ts` cover
-  the post-item/URL and blog-config logic, the schemas, and Atom escaping; most
-  components and tasks are untested
+- **Partial test coverage** - `src/test/` covers post directory parsing and
+  discovery, the post-item/URL and blog-config logic, the redirect helper, post
+  creation and updating, the schemas, and Atom escaping; the components and the
+  task wrappers are untested
 
 ## Project standards
 

@@ -1,10 +1,12 @@
 import { TaskError, type Task } from '@fuzdev/gro';
 import { package_json_load } from '@fuzdev/gro/package_json.ts';
 import * as s from '@fuzdev/fuz_schema/schema.ts';
+import { to_error_message } from '@fuzdev/fuz_util/error.ts';
 import { meta } from '@fuzdev/fuz_schema/meta.ts';
 
 import { create_blog_post, load_blogs_module } from './blog_helpers.ts';
 import { resolve_blog_config } from './blog.ts';
+import { FeedDatetime } from './feed.ts';
 
 /** @nodocs */
 export const Args = s.object({
@@ -17,9 +19,16 @@ export const Args = s.object({
 			description: 'dirname of the target blog, defaulting to the first registered'
 		})
 	),
-	date: s.optional(
+	slug: s.optional(
 		meta(s.string, {
-			description: "the post's date, used for both date_published and date_modified"
+			description:
+				"the post's slug in its `<id>-<slug>` directory name, defaulting to one derived from the title"
+		})
+	),
+	date: s.optional(
+		meta(FeedDatetime, {
+			description:
+				"the post's UTC ISO datetime, used for both date_published and date_modified, defaulting to now"
 		})
 	)
 });
@@ -33,6 +42,7 @@ export const task: Task<Args> = {
 		const {
 			_: [raw_title],
 			blog: blog_dirname,
+			slug: raw_slug,
 			date = new Date().toISOString()
 		} = args;
 
@@ -51,12 +61,16 @@ export const task: Task<Args> = {
 		const fuz_blog_import_path =
 			package_json.name === '@fuzdev/fuz_blog' ? '#lib' : '@fuzdev/fuz_blog';
 
+		// invalid slugs and post directories are user errors, so report them without a stack
 		const { blog_post_id, path, slug } = await create_blog_post({
 			dir,
 			config,
 			title: raw_title.trim(),
+			slug: raw_slug?.trim(),
 			date,
 			fuz_blog_import_path
+		}).catch((err: unknown) => {
+			throw new TaskError(to_error_message(err));
 		});
 
 		await invoke_task('gen');
