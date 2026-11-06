@@ -1,9 +1,8 @@
 import { error, redirect } from '@sveltejs/kit';
-import { resolve } from '$app/paths';
-import type { Path } from '$app/types';
 
 import type { BlogFeed, BlogFeedItem } from './blog.ts';
 import { is_blog_post_id_param } from './blog_post_id.ts';
+import { resolve_blog_post_pathname } from './blog_post_pathname.ts';
 
 /**
  * Helpers for the `[post=blog_post_id]` route `gro gen` writes in each blog with posts,
@@ -13,14 +12,6 @@ import { is_blog_post_id_param } from './blog_post_id.ts';
  *
  * @module
  */
-
-/**
- * Resolves a post's app-relative `pathname` (a `BlogFeedItem` field) to an href
- * under the deploy base path, with kit's `resolve`.
- */
-export const resolve_blog_post_pathname = (pathname: string): string =>
-	// every post `pathname` is a literal app route, and kit's `Path` drops the leading `/`
-	resolve(pathname.slice(1) as Path);
 
 /**
  * Finds a feed's item by the param of the generated redirect route, which must

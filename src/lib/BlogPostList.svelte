@@ -1,7 +1,7 @@
 <script lang="ts">
 	import FeedItemDate from './FeedItemDate.svelte';
 	import type { BlogFeed } from './blog.ts';
-	import { resolve_blog_post_pathname } from './blog_post_redirect.ts';
+	import { resolve_blog_post_pathname } from './blog_post_pathname.ts';
 	import { sort_feed_items } from './feed.ts';
 
 	const { feed }: { feed: BlogFeed } = $props();

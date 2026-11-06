@@ -4,7 +4,6 @@ import { isHttpError, isRedirect } from '@sveltejs/kit';
 import {
 	blog_post_redirect,
 	find_blog_feed_item_by_param,
-	resolve_blog_post_pathname,
 	to_blog_post_redirect_entries
 } from '#lib/blog_post_redirect.ts';
 import { resolve_blog_feed_item, type BlogFeed } from '#lib/blog.ts';
@@ -31,12 +30,6 @@ const catch_thrown = (fn: () => unknown): unknown => {
 	}
 	assert.fail('expected a throw');
 };
-
-describe('resolve_blog_post_pathname', () => {
-	test('resolves a post pathname as an app route', () => {
-		assert.equal(resolve_blog_post_pathname('/blog/3-2024-recap'), '/blog/3-2024-recap');
-	});
-});
 
 describe('find_blog_feed_item_by_param', () => {
 	test('finds an item by its bare id', () => {

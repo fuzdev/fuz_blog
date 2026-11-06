@@ -39,7 +39,7 @@
 			<Code
 				lang="ts"
 				content={`// src/routes/blogs.ts
-import type {BlogConfig} from '@fuzdev/fuz_blog/blog.ts';
+import type {BlogConfig} from '@fuzdev/fuz_blog/blog_config.ts';
 
 export const blogs: Array<BlogConfig> = [
 	{
@@ -128,6 +128,31 @@ ${'<'}script lang="ts">
 </BlogPost>`}
 			/>
 			<p>
+				<code>BlogPost</code>'s optional <code>meta</code> and <code>comments</code> snippets
+				receive the post's feed entry and its <code>post</code>, so one snippet shared by many posts
+				can render the fields you add beyond <DeclarationLink name="BlogPostMetadata" />, like an
+				autoblog's <code>model</code>:
+			</p>
+			<Code
+				content={`<!-- src/routes/autoblog/PostSnippets.svelte -->
+${'<'}script lang="ts" module>
+	import type {BlogFeedItem, BlogPostMetadata} from '@fuzdev/fuz_blog/blog.ts';
+
+	export {provenance};
+</script>
+
+{#snippet provenance(item: BlogFeedItem, post: BlogPostMetadata)}
+	<p>post {item.blog_post_id}, written by {post.model}</p>
+{/snippet}
+
+<!-- in each autoblog post -->
+${'<'}script lang="ts">
+	import {provenance} from '../PostSnippets.svelte';
+</script>
+
+<BlogPost {post} meta={provenance}>...</BlogPost>`}
+			/>
+			<p>
 				<code>BlogPostList</code> renders a blog's index, newest first, from its generated
 				<code>feed</code>:
 			</p>
@@ -151,7 +176,7 @@ ${'<'}script lang="ts">
 			<Code
 				content={`<!-- src/routes/blog/+layout.svelte -->
 ${'<'}script lang="ts">
-	import {blog_feed_context} from '@fuzdev/fuz_blog/blog.ts';
+	import {blog_feed_context} from '@fuzdev/fuz_blog/blog_feed_context.ts';
 
 	import {feed} from './feed.ts';
 

@@ -1,6 +1,5 @@
 import type { Gen } from '@fuzdev/gro/gen.ts';
 import { existsSync } from 'node:fs';
-import { join } from 'node:path';
 
 import {
 	collect_blog_post_dirs,
@@ -8,6 +7,7 @@ import {
 	load_blog_posts,
 	load_blogs_module,
 	load_fuz_blog_import_path,
+	to_blog_dir,
 	to_blog_post_redirect_route_path,
 	type BlogGenInput
 } from './blog_helpers.ts';
@@ -22,13 +22,12 @@ import {
 export const gen: Gen = async ({ origin_path }) => {
 	const dir = process.cwd();
 	const fuz_blog_import_path = await load_fuz_blog_import_path(dir);
-	const routes_path = 'src/routes'; // TODO read from SvelteKit config;
 
 	const { blogs } = await load_blogs_module(dir);
 
 	const inputs: Array<BlogGenInput> = await Promise.all(
 		blogs.map(async (config) => {
-			const blog_dir = join(dir, routes_path, config.dirname);
+			const blog_dir = to_blog_dir(dir, config.dirname);
 			const post_dirs = await collect_blog_post_dirs(blog_dir, config.dirname);
 			return {
 				config,
@@ -41,7 +40,6 @@ export const gen: Gen = async ({ origin_path }) => {
 
 	return create_blog_gen_outputs({
 		dir,
-		routes_path,
 		fuz_blog_import_path,
 		origin_path,
 		blogs: inputs

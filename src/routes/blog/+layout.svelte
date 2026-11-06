@@ -2,7 +2,7 @@
 	import Breadcrumb from '@fuzdev/fuz_ui/Breadcrumb.svelte';
 	import type { Snippet } from 'svelte';
 
-	import { blog_feed_context } from '#lib/blog.ts';
+	import { blog_feed_context } from '#lib/blog_feed_context.ts';
 	import { feed } from './feed.ts';
 
 	const {

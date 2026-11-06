@@ -4,7 +4,7 @@ import { to_error_message } from '@fuzdev/fuz_util/error.ts';
 import { meta } from '@fuzdev/fuz_schema/meta.ts';
 
 import { load_blogs_module, update_blog_post } from './blog_helpers.ts';
-import { resolve_blog_config } from './blog.ts';
+import { resolve_blog_config } from './blog_config.ts';
 import { FeedDatetime } from './feed.ts';
 
 /** @nodocs */

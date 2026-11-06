@@ -12,7 +12,7 @@ import {
 	to_blog_post_slug,
 	update_blog_post
 } from '#lib/blog_helpers.ts';
-import type { BlogConfig } from '#lib/blog.ts';
+import type { BlogConfig } from '#lib/blog_config.ts';
 import { create_blog_config, create_blog_post_metadata } from './blog_test_helpers.ts';
 
 const config = create_blog_config();

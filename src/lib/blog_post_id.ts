@@ -1,11 +1,20 @@
+import type { Flavored } from '@fuzdev/fuz_schema/schema.ts';
+
 /**
- * The post id grammar and its SvelteKit param matcher, kept dependency-free
- * because SvelteKit loads param matchers eagerly on the client and imports
- * `src/params.ts` with plain Node at build time, outside Vite - so no `$app/*`
- * or other Vite-resolved imports here.
+ * The post id type, its grammar, and its SvelteKit param matcher, kept free of
+ * runtime imports because SvelteKit loads param matchers eagerly on the client
+ * and imports `src/params.ts` with plain Node at build time, outside Vite - so
+ * no `$app/*` or other Vite-resolved imports here, and only type imports, which
+ * are erased.
  *
  * @module
  */
+
+/**
+ * A post's positive integer id, the first part of its `<id>-<slug>` directory name.
+ * Ids are unique within a blog and may have gaps.
+ */
+export type BlogPostId = Flavored<number, 'BlogPostId'>;
 
 /**
  * Regex source for a post id: a positive integer without leading zeros.

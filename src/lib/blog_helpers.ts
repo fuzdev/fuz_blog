@@ -7,28 +7,36 @@ import { dirname, join } from 'node:path';
 import * as s from '@fuzdev/fuz_schema/schema.ts';
 
 import { create_atom_feed } from './feed.ts';
+import { BlogFeed, BlogPostMetadata, resolve_blog_feed_item, to_blog_feed_url } from './blog.ts';
 import {
-	BLOG_POST_SLUG_PATTERN,
-	BlogFeed,
-	BlogPostMetadata,
-	find_blog_post_dir,
-	resolve_blog_feed_item,
-	resolve_blog_post_dirs,
-	to_blog_feed_url,
-	to_blog_post_dirname,
-	to_next_blog_post_id,
 	validate_blog_configs,
 	type BlogConfig,
-	type BlogPostDir,
-	type BlogPostId,
 	type BlogPostScaffoldOptions,
 	type BlogsModule
-} from './blog.ts';
+} from './blog_config.ts';
+import {
+	BLOG_POST_SLUG_PATTERN,
+	find_blog_post_dir,
+	resolve_blog_post_dirs,
+	to_blog_post_dirname,
+	to_next_blog_post_id,
+	type BlogPostDir
+} from './blog_post_dir.ts';
+import type { BlogPostId } from './blog_post_id.ts';
 
 // Build helpers for `gro gen` and the post tasks. Most touch the filesystem or import
 // gro, while `create_blog_gen_outputs` is pure and lives here beside its gen inputs.
-// The pure logic the components share (`resolve_blog_config`, `resolve_blog_feed_item`,
-// `validate_blog_configs`) lives in `blog.ts`, free of node and gro imports.
+// The pure logic lives in `blog.ts`, `blog_config.ts`, and `blog_post_dir.ts`, free of
+// node and gro imports.
+
+/**
+ * Absolute path to a blog's route directory, `src/routes/<dirname>` in the project at `dir`.
+ * The routes directory is always `src/routes` - a custom SvelteKit `files.routes` is unsupported.
+ * @param dir - the project root
+ * @param dirname - the blog's `dirname`, from its `BlogConfig`
+ */
+export const to_blog_dir = (dir: string, dirname: string): string =>
+	join(dir, 'src/routes', dirname);
 
 /**
  * Loads the consumer's `src/routes/blogs.ts` registry and validates it with
@@ -166,8 +174,6 @@ export interface CreateBlogPostOptions {
 	 * (e.g. a `--model` flag) without widening `BlogPostScaffoldOptions`.
 	 */
 	scaffold?: (options: BlogPostScaffoldOptions) => string;
-	/** @default 'src/routes' */
-	routes_path?: string;
 }
 
 export interface CreatedBlogPost {
@@ -187,7 +193,7 @@ export interface CreatedBlogPost {
 export const create_blog_post = async (
 	options: CreateBlogPostOptions
 ): Promise<CreatedBlogPost> => {
-	const { dir, config, title, date, fuz_blog_import_path, routes_path = 'src/routes' } = options;
+	const { dir, config, title, date, fuz_blog_import_path } = options;
 	const slug = options.slug || to_blog_post_slug(title);
 	if (!slug) {
 		throw new Error(
@@ -199,7 +205,7 @@ export const create_blog_post = async (
 			`invalid slug ${JSON.stringify(slug)} - a slug is lowercase ASCII letters and digits in hyphen-separated runs`
 		);
 	}
-	const blog_dir = join(dir, routes_path, config.dirname);
+	const blog_dir = to_blog_dir(dir, config.dirname);
 	const blog_post_id = to_next_blog_post_id(await collect_blog_post_dirs(blog_dir, config.dirname));
 	const path = to_blog_post_path(blog_dir, { blog_post_id, slug });
 	const scaffold = options.scaffold ?? config.scaffold ?? scaffold_blog_post;
@@ -223,8 +229,6 @@ export interface UpdateBlogPostOptions {
 	query: string;
 	/** ISO date written to `date_modified`. */
 	date: string;
-	/** @default 'src/routes' */
-	routes_path?: string;
 }
 
 export interface UpdatedBlogPost {
@@ -246,8 +250,8 @@ export interface UpdatedBlogPost {
 export const update_blog_post = async (
 	options: UpdateBlogPostOptions
 ): Promise<UpdatedBlogPost> => {
-	const { dir, config, query, date, routes_path = 'src/routes' } = options;
-	const blog_dir = join(dir, routes_path, config.dirname);
+	const { dir, config, query, date } = options;
+	const blog_dir = to_blog_dir(dir, config.dirname);
 	const post_dir = find_blog_post_dir(
 		await collect_blog_post_dirs(blog_dir, config.dirname),
 		query,
@@ -306,8 +310,6 @@ export interface BlogGenInput {
 export interface BlogGenOptions {
 	/** The project root. */
 	dir: string;
-	/** @default 'src/routes' */
-	routes_path?: string;
 	/** Import specifier for fuz_blog modules - `#lib` inside fuz_blog, `@fuzdev/fuz_blog` in consumers. */
 	fuz_blog_import_path: string;
 	/** The generator's path, written into the generated files' header comments. */
@@ -331,7 +333,7 @@ export interface BlogGenOutput {
  * (gen cannot delete it)
  */
 export const create_blog_gen_outputs = (options: BlogGenOptions): Array<BlogGenOutput> => {
-	const { dir, routes_path = 'src/routes', fuz_blog_import_path, origin_path } = options;
+	const { dir, fuz_blog_import_path, origin_path } = options;
 	const outputs: Array<BlogGenOutput> = [];
 
 	// `load_blogs_module` already validated before posts were read, this keeps the pure path complete
@@ -339,7 +341,7 @@ export const create_blog_gen_outputs = (options: BlogGenOptions): Array<BlogGenO
 
 	for (const { config, post_dirs, posts, redirect_route_exists } of options.blogs) {
 		const { dirname: blog_dirname, feed: blog } = config;
-		const blog_dir = join(dir, routes_path, blog_dirname);
+		const blog_dir = to_blog_dir(dir, blog_dirname);
 
 		// loose input: validate the author metadata (extras pass through)
 		const items = posts.map((post, i) => {

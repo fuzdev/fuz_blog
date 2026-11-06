@@ -1,4 +1,5 @@
-import type { BlogConfig, BlogFeedMetadata, BlogPostMetadata } from '#lib/blog.ts';
+import type { BlogFeedMetadata, BlogPostMetadata } from '#lib/blog.ts';
+import type { BlogConfig } from '#lib/blog_config.ts';
 
 /**
  * Creates valid feed metadata for a blog at `https://example.com/blog`.

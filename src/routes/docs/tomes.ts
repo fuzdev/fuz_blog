@@ -10,10 +10,14 @@ export const tomes: Array<Tome> = [
 		related_tomes: ['api'],
 		related_modules: [
 			'blog.ts',
-			'feed.ts',
-			'blog_helpers.ts',
+			'blog_config.ts',
+			'blog_feed_context.ts',
+			'blog_post_dir.ts',
 			'blog_post_id.ts',
-			'blog_post_redirect.ts'
+			'blog_post_pathname.ts',
+			'blog_post_redirect.ts',
+			'blog_helpers.ts',
+			'feed.ts'
 		],
 		related_declarations: ['BlogConfig', 'BlogFeed', 'blog_feed_context', 'create_blog_post']
 	},

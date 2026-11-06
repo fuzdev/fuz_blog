@@ -72,7 +72,10 @@ feed in its own subtree — e.g. a `src/routes/<dirname>/+layout.svelte` calling
 `blog_feed_context.set(feed)` — rather than a single root layout for all of them.
 
 Comments are opt-in: `BlogPost.svelte` takes a `comments` snippet that renders
-after `footer`; fuz_blog ships no comment provider.
+after `footer`; fuz_blog ships no comment provider. The `meta` and `comments`
+snippets receive `(item, post)` — the derived `BlogFeedItem` and the page's
+`BlogPostMetadata`, consumer extras included — so a snippet shared across posts
+can render a consumer's own fields.
 
 Wiring in a consumer: gro discovers `*.gen.ts` only in the local project and
 runs a project task only by its path, so a consuming project keeps thin local
@@ -114,9 +117,13 @@ fuz_blog is a **blog template and library**:
 ```
 src/
 ├── lib/                    # exportable library code
-│   ├── blog.ts             # types, blog_feed_context, registry validation, post dirname parsing and lookup, resolve_blog_feed_item
+│   ├── blog.ts             # post metadata + feed schemas, feed item and feed URL derivation
+│   ├── blog_config.ts      # BlogConfig, the blogs registry's validation and lookup
+│   ├── blog_feed_context.ts # blog_feed_context (imports fuz_ui, so kept out of `blog.ts`)
 │   ├── blog_helpers.ts     # node build helpers: load_blogs_module, collect_blog_post_dirs, create_blog_post
-│   ├── blog_post_id.ts     # post id grammar + the blog_post_id param matcher
+│   ├── blog_post_dir.ts    # `<id>-<slug>` post directory parsing, validation, and lookup
+│   ├── blog_post_id.ts     # BlogPostId, the id grammar, and the blog_post_id param matcher
+│   ├── blog_post_pathname.ts # resolve_blog_post_pathname, a post link under the base path
 │   ├── blog_post_redirect.ts # entries + load for the generated redirect route
 │   ├── blog.gen.ts         # generates feed.xml, feed.ts, redirect route
 │   ├── feed.ts             # Feed, FeedItem types, create_atom_feed
@@ -210,19 +217,26 @@ The pure part, from loaded posts to outputs, is `create_blog_gen_outputs()` in
 
 types and data:
 
-- `blog.ts` - `BlogPostMetadata`, `BlogFeedItem`, `BlogPostId`, `BlogPostDir`,
-  `BlogFeedMetadata`, `BlogFeed`, `BlogConfig`, `blog_feed_context`, and the pure
-  `to_blog_feed_url()` / `validate_blog_configs()` / `parse_blog_post_dirname()` /
-  `resolve_blog_post_dirs()` / `find_blog_post_dir()` / `resolve_blog_config()` /
-  `resolve_blog_feed_item()`
-- `blog_post_id.ts` - `BLOG_POST_ID_SOURCE`, `is_blog_post_id_param()`, and the
-  `blog_post_id_param` matcher, dependency-free since SvelteKit loads matchers
-  eagerly on the client
+- `blog.ts` - `BlogPostMetadata`, `BlogFeedItem`, `BlogFeedMetadata`, `BlogFeed`,
+  and the pure `resolve_blog_feed_item()` / `to_blog_feed_url()`, which derive
+  entry and feed URLs from `home_page_url`
+- `blog_config.ts` - `BlogConfig`, `BlogPostScaffoldOptions`, `BlogsModule`, and
+  the pure `validate_blog_configs()` / `resolve_blog_config()`
+- `blog_post_dir.ts` - `BlogPostDir`, `BLOG_POST_SLUG_PATTERN`, and the pure
+  `parse_blog_post_dirname()` / `to_blog_post_dirname()` /
+  `resolve_blog_post_dirs()` / `find_blog_post_dir()` / `to_next_blog_post_id()`
+- `blog_post_id.ts` - `BlogPostId`, `BLOG_POST_ID_SOURCE`,
+  `is_blog_post_id_param()`, and the `blog_post_id_param` matcher, free of
+  runtime imports since SvelteKit loads matchers eagerly on the client and
+  imports `src/params.ts` with plain Node
+- `blog_feed_context.ts` - `blog_feed_context`, apart from `blog.ts` so `blog.ts` and
+  the build helpers never import fuz_ui or Svelte
+- `blog_post_pathname.ts` - `resolve_blog_post_pathname()`, a post `pathname`
+  resolved under the base path for links (imports `$app/paths`, so
+  SvelteKit-only)
 - `blog_post_redirect.ts` - `find_blog_feed_item_by_param()`,
   `to_blog_post_redirect_entries()`, and `blog_post_redirect()` for the
-  generated redirect route, and `resolve_blog_post_pathname()`, a post
-  `pathname` resolved under the base path for links (imports `$app/paths`, so
-  SvelteKit-only)
+  generated redirect route
 - `feed.ts` - `Feed`, `FeedItem` fuz_schema schemas (JSON Feed 1.1 field
   names, not a conformant JSON Feed), `FeedDatetime` (a UTC ISO datetime
   string), `FeedUrl`, `compare_feed_items()` / `sort_feed_items()` (newest
@@ -234,6 +248,7 @@ types and data:
   `load_fuz_blog_import_path()`, `collect_blog_post_dirs()`, `load_blog_posts()`
   (each post's unvalidated `post` export), `create_blog_post()`,
   `update_blog_post()`, `scaffold_blog_post()`, `to_blog_post_slug()`,
+  `to_blog_dir()` (a blog's `src/routes/<dirname>`),
   `create_blog_gen_outputs()` (pure), `to_blog_post_redirect_route_path()`,
   `BLOG_POST_REDIRECT_ROUTE_DIRNAME`
 - `util.ts` - `format_date()`, the UTC calendar date like `Jul 10, 2024`, so
@@ -312,8 +327,9 @@ accessible from the context menu for theme customization.
 
 ## Known limitations
 
-- **Hard-coded `src/routes/` path** - Route scanning assumes standard SvelteKit
-  structure
+- **Hard-coded `src/routes/` path** - gen and the post tasks find blogs at
+  `src/routes/<dirname>` (`to_blog_dir()`), so a custom SvelteKit `files.routes`
+  is unsupported
 - **Partial test coverage** - `src/test/` covers post directory parsing and
   discovery, the post-item/URL and blog-config logic, the redirect helper, post
   creation and updating, the schemas, feed ordering and Atom output, and UTC date
