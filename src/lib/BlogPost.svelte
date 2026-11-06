@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang="ts" generics="T extends BlogPostMetadata">
 	import type { SvelteHTMLElements } from 'svelte/elements';
 	import type { Snippet } from 'svelte';
 	import { page } from '$app/state';
@@ -19,9 +19,11 @@
 		/**
 		 * The author-defined metadata the post exports from its `<script module>`,
 		 * including any fields a consumer adds beyond `BlogPostMetadata`,
-		 * like an autoblog's `model`. Sets the page title.
+		 * like an autoblog's `model`. Sets the page title. Its type is the
+		 * component's `T`, inferred from the value passed, so `meta` and `comments`
+		 * receive the extra fields typed.
 		 */
-		post: BlogPostMetadata;
+		post: T;
 		/**
 		 * The resolved feed item. Defaults to the `blog_feed_context` item whose
 		 * `pathname` is the current route; pass it explicitly to skip the context,
@@ -32,12 +34,12 @@
 		/**
 		 * Renders after `BlogPostHeader`, e.g. for post provenance from `post`'s extra fields.
 		 */
-		meta?: Snippet<[item: BlogFeedItem, post: BlogPostMetadata]>;
+		meta?: Snippet<[item: BlogFeedItem, post: T]>;
 		footer?: Snippet;
 		/**
 		 * Renders after `footer`, for a post's comments.
 		 */
-		comments?: Snippet<[item: BlogFeedItem, post: BlogPostMetadata]>;
+		comments?: Snippet<[item: BlogFeedItem, post: T]>;
 		children: Snippet;
 	} = $props();
 

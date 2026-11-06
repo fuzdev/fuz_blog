@@ -74,8 +74,13 @@ feed in its own subtree — e.g. a `src/routes/<dirname>/+layout.svelte` calling
 Comments are opt-in: `BlogPost.svelte` takes a `comments` snippet that renders
 after `footer`; fuz_blog ships no comment provider. The `meta` and `comments`
 snippets receive `(item, post)` — the derived `BlogFeedItem` and the page's
-`BlogPostMetadata`, consumer extras included — so a snippet shared across posts
-can render a consumer's own fields.
+`post`, consumer extras included — so a snippet shared across posts can render a
+consumer's own fields. `BlogPost` is generic over the post
+(`generics="T extends BlogPostMetadata"`): `T` is inferred from the `post` prop,
+so with `export const post = {...} satisfies BlogPostMetadata` an extra field
+like `model` is typed `string` in an inline snippet, and a shared snippet types
+its `post` param with the consumer's own type (e.g.
+`BlogPostMetadata & {model: string}`), which TS then checks each post against.
 
 Wiring in a consumer: gro discovers `*.gen.ts` only in the local project and
 runs a project task only by its path, so a consuming project keeps thin local

@@ -131,21 +131,36 @@ ${'<'}script lang="ts">
 				<code>BlogPost</code>'s optional <code>meta</code> and <code>comments</code> snippets
 				receive the post's feed entry and its <code>post</code>, so one snippet shared by many posts
 				can render the fields you add beyond <DeclarationLink name="BlogPostMetadata" />, like an
-				autoblog's <code>model</code>:
+				autoblog's <code>model</code>. <code>BlogPost</code> is generic over the post: its type is
+				inferred from the <code>post</code> you pass, so with <code>satisfies</code> keeping the
+				extra fields, an inline snippet sees <code>post.model</code> as a <code>string</code>. A
+				shared snippet types its <code>post</code> with your own post type, and each post passing it
+				must have those fields:
 			</p>
 			<Code
 				content={`<!-- src/routes/autoblog/PostSnippets.svelte -->
 ${'<'}script lang="ts" module>
 	import type {BlogFeedItem, BlogPostMetadata} from '@fuzdev/fuz_blog/blog.ts';
 
+	export type AutoblogPostMetadata = BlogPostMetadata & {model: string};
+
 	export {provenance};
 </script>
 
-{#snippet provenance(item: BlogFeedItem, post: BlogPostMetadata)}
+{#snippet provenance(item: BlogFeedItem, post: AutoblogPostMetadata)}
 	<p>post {item.blog_post_id}, written by {post.model}</p>
 {/snippet}
 
 <!-- in each autoblog post -->
+${'<'}script lang="ts" module>
+	import type {AutoblogPostMetadata} from '../PostSnippets.svelte';
+
+	export const post = {
+		// ...the BlogPostMetadata fields
+		model: 'some-model',
+	} satisfies AutoblogPostMetadata;
+</script>
+
 ${'<'}script lang="ts">
 	import {provenance} from '../PostSnippets.svelte';
 </script>
