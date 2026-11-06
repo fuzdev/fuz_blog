@@ -2,8 +2,8 @@ import { format_file } from '@fuzdev/gro/format_file.ts';
 import { package_json_load } from '@fuzdev/gro/package_json.ts';
 import { slugify } from '@fuzdev/fuz_util/path.ts';
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { existsSync, readdirSync, statSync } from 'node:fs';
+import { basename, dirname, join } from 'node:path';
 import * as s from '@fuzdev/fuz_schema/schema.ts';
 
 import { create_atom_feed } from './feed.ts';
@@ -23,6 +23,13 @@ import {
 	type BlogPostDir
 } from './blog_post_dir.ts';
 import type { BlogPostId } from './blog_post_id.ts';
+import {
+	to_blog_init_paths,
+	BLOG_INIT_ROOT_LAYOUT_PATH,
+	type BlogInitAction,
+	type BlogInitPackageJson,
+	type BlogInitState
+} from './blog_init.ts';
 
 // Build helpers for `gro gen` and the post tasks. Most touch the filesystem or import
 // gro, while `create_blog_gen_outputs` is pure and lives here beside its gen inputs.
@@ -43,19 +50,39 @@ export const to_blog_dir = (dir: string, dirname: string): string =>
  * `validate_blog_configs`.
  */
 export const load_blogs_module = async (dir: string): Promise<BlogsModule> => {
-	const path = join(dir, 'src/routes/blogs.ts');
-	if (!existsSync(path)) {
+	const blogs = await load_blogs_registry(dir);
+	if (!blogs) {
 		throw new Error(
-			`expected a blogs registry at ${path} - export \`blogs: Array<BlogConfig>\` from it`
+			`expected a blogs registry at ${to_blogs_registry_path(dir)} - export \`blogs: Array<BlogConfig>\` from it`
 		);
 	}
+	if (blogs.length === 0) {
+		throw new Error(
+			`expected ${to_blogs_registry_path(dir)} to export a non-empty \`blogs\` array`
+		);
+	}
+	return { blogs };
+};
+
+const to_blogs_registry_path = (dir: string): string => join(dir, 'src/routes/blogs.ts');
+
+/**
+ * Loads the consumer's `src/routes/blogs.ts` registry and validates it with
+ * `validate_blog_configs`, allowing an empty `blogs` array.
+ * `load_blogs_module` is the strict form gen and the post tasks use.
+ * @returns the validated blogs, or `null` when the registry file is missing
+ * @throws Error when the module doesn't export a `blogs` array or a blog is invalid
+ */
+export const load_blogs_registry = async (dir: string): Promise<Array<BlogConfig> | null> => {
+	const path = to_blogs_registry_path(dir);
+	if (!existsSync(path)) return null;
 	const { blogs } = (await import(path)) as { blogs?: unknown };
-	if (!Array.isArray(blogs) || blogs.length === 0) {
-		throw new Error(`expected ${path} to export a non-empty \`blogs\` array`);
+	if (!Array.isArray(blogs)) {
+		throw new Error(`expected ${path} to export a \`blogs\` array`);
 	}
 	// before any post path is built from a `dirname`
 	validate_blog_configs(blogs);
-	return { blogs };
+	return blogs;
 };
 
 /**
@@ -294,6 +321,10 @@ export const BLOG_POST_REDIRECT_ROUTE_DIRNAME = '[post=blog_post_id]';
 export const to_blog_post_redirect_route_path = (blog_dir: string): string =>
 	join(blog_dir, BLOG_POST_REDIRECT_ROUTE_DIRNAME, '+page.ts');
 
+// interpolated so gro's dist pass, which rewrites relative `.ts` import specifiers
+// to `.js` even inside template strings, leaves the generated import alone
+const REDIRECT_ROUTE_FEED_MODULE = '../feed.ts';
+
 /**
  * One blog's inputs to `create_blog_gen_outputs`, read from disk by `blog.gen.ts`.
  */
@@ -408,7 +439,7 @@ export const create_blog_gen_outputs = (options: BlogGenOptions): Array<BlogGenO
 
 				import {blog_post_redirect, to_blog_post_redirect_entries} from '${fuz_blog_import_path}/blog_post_redirect.ts';
 
-				import {feed} from '../feed.ts';
+				import {feed} from '${REDIRECT_ROUTE_FEED_MODULE}';
 				import type {EntryGenerator, PageLoad} from './$types.js';
 
 				export const entries: EntryGenerator = () => to_blog_post_redirect_entries(feed);
@@ -421,4 +452,135 @@ export const create_blog_gen_outputs = (options: BlogGenOptions): Array<BlogGenO
 	}
 
 	return outputs;
+};
+
+export interface LoadBlogInitStateOptions {
+	/** The project root, usually `process.cwd()`. */
+	dir: string;
+	/** The new blog's `dirname`. */
+	dirname: string;
+	package_json: BlogInitPackageJson;
+	/** SvelteKit's `files.routes`, relative to `dir`. */
+	routes_path: string;
+	/**
+	 * SvelteKit's `files.params` relative to `dir`, resolved like SvelteKit does
+	 * (see `resolve_params_module_path`).
+	 */
+	params_path: string;
+	/** SvelteKit's `moduleExtensions`, defaulting to `.js` and `.ts`. */
+	module_extensions?: Array<string>;
+}
+
+/**
+ * Reads the project state `plan_blog_init` plans from. Loads an existing
+ * `src/routes/blogs.ts` with `load_blogs_registry`, so an invalid registry throws,
+ * but an empty one is allowed.
+ */
+export const load_blog_init_state = async (
+	options: LoadBlogInitStateOptions
+): Promise<BlogInitState> => {
+	const { dir, dirname, package_json, routes_path, params_path } = options;
+	const read_if_exists = (path: string): Promise<string | null> =>
+		existsSync(join(dir, path)) ? readFile(join(dir, path), 'utf8') : Promise.resolve(null);
+
+	const existing_paths = new Set(
+		Object.values(to_blog_init_paths(dirname)).filter((path) => existsSync(join(dir, path)))
+	);
+
+	const blogs = await load_blogs_registry(dir);
+
+	const module_extensions = options.module_extensions ?? ['.js', '.ts'];
+	const existing_params_path = resolve_params_module_path(dir, params_path, module_extensions);
+
+	return {
+		package_json,
+		routes_path,
+		routes_dir_exists: existsSync(join(dir, routes_path)),
+		existing_paths,
+		blogs,
+		params_path:
+			existing_params_path ?? to_params_module_create_path(params_path, module_extensions),
+		params_content: existing_params_path ? await read_if_exists(existing_params_path) : null,
+		root_layout_content: await read_if_exists(BLOG_INIT_ROOT_LAYOUT_PATH)
+	};
+};
+
+/**
+ * Resolves SvelteKit's `files.params` to its existing module the way SvelteKit's
+ * `resolve_entry` does: the path itself when it's a file, else its directory's
+ * `index` with one of `extensions`, else a sibling file named the path's basename
+ * plus one of `extensions`.
+ * @param dir - the project root
+ * @param params_path - `files.params`, relative to `dir`
+ * @param extensions - SvelteKit's `moduleExtensions`
+ * @returns the module's path relative to `dir`, or `null` when there is none
+ */
+export const resolve_params_module_path = (
+	dir: string,
+	params_path: string,
+	extensions: Array<string>
+): string | null => {
+	const entry = join(dir, params_path);
+	if (existsSync(entry)) {
+		if (statSync(entry).isFile()) return params_path;
+		const index = join(params_path, 'index');
+		if (extensions.some((extension) => existsSync(join(dir, index + extension)))) {
+			return resolve_params_module_path(dir, index, extensions);
+		}
+	}
+	const parent = dirname(entry);
+	if (!existsSync(parent)) return null;
+	const base = basename(entry);
+	const found = readdirSync(parent).find(
+		(file) =>
+			(file === base || extensions.some((extension) => file === base + extension)) &&
+			statSync(join(parent, file)).isFile()
+	);
+	return found ? join(dirname(params_path), found) : null;
+};
+
+/**
+ * The params module path to create when `resolve_params_module_path` finds none,
+ * chosen so it then resolves it: `params_path` itself when it ends with `.js`,
+ * `.ts`, or one of `extensions`, else `params_path` plus `.ts` when that's an extension, else plus
+ * the first extension.
+ * @param params_path - SvelteKit's `files.params`
+ * @param extensions - SvelteKit's `moduleExtensions`
+ */
+export const to_params_module_create_path = (
+	params_path: string,
+	extensions: Array<string>
+): string => {
+	// SvelteKit's sibling search matches the exact basename too, so a path with an
+	// extension resolves as is
+	if (/\.(js|ts)$/.test(params_path) || extensions.some((e) => params_path.endsWith(e))) {
+		return params_path;
+	}
+	return params_path + (extensions.includes('.ts') ? '.ts' : (extensions[0] ?? '.ts'));
+};
+
+/**
+ * Writes a `create` action of a `plan_blog_init` plan under `dir`, formatted with
+ * gro's `format_file`. Never overwrites.
+ * @param dir - the project root
+ * @param action - the file to create
+ * @throws Error naming the file when it was created since the plan was made
+ */
+export const write_blog_init_file = async (
+	dir: string,
+	action: Extract<BlogInitAction, { kind: 'create' }>
+): Promise<void> => {
+	const path = join(dir, action.path);
+	const content = format_file(action.content, { filepath: path });
+	await mkdir(dirname(path), { recursive: true });
+	try {
+		await writeFile(path, content, { encoding: 'utf8', flag: 'wx' });
+	} catch (err) {
+		if ((err as NodeJS.ErrnoException | undefined)?.code === 'EEXIST') {
+			throw new Error(`${action.path} was created since init planned - run init again`, {
+				cause: err
+			});
+		}
+		throw err;
+	}
 };

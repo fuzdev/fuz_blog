@@ -15,6 +15,7 @@ gro typecheck    # typecheck only
 gro test         # run tests with vitest
 gro gen          # regenerate .gen files (feed.xml, feed.ts, redirect route)
 gro build        # build for production
+gro task node_modules/@fuzdev/fuz_blog/dist/init.task.js # in a consumer: wire up a blog
 gro task src/lib/post.task.ts "Title" # scaffold a new blog post
 gro task src/lib/update_post.task.ts  # update date_modified on existing post
 ```
@@ -82,7 +83,22 @@ like `model` is typed `string` in an inline snippet, and a shared snippet types
 its `post` param with the consumer's own type (e.g.
 `BlogPostMetadata & {model: string}`), which TS then checks each post against.
 
-Wiring in a consumer: gro discovers `*.gen.ts` only in the local project and
+Wiring in a consumer: `gro task node_modules/@fuzdev/fuz_blog/dist/init.task.js`
+(gro runs a package task by its file path) creates whatever is missing — the
+`blogs.ts` registry, the local gen and task files, the params module (found like
+SvelteKit finds `files.params`), the blog's `+layout.svelte` and `+page.svelte`,
+and a root `+layout.svelte` linking the feeds — then runs `gro gen`. It never
+overwrites: for an existing registry without the blog (empty included), an
+existing params module without the matcher, and an existing root layout without
+the feed `<link>`, it prints the code to add. The blog's routes import its
+generated `feed.ts`, so with the entry only suggested they wait for the next run.
+Flags: `--dirname` (default `blog`), `--url` (the site URL, default `homepage`,
+trailing slashes stripped, a warning for a github.com or npmjs.com URL),
+`--title`, `--description`, `--author` (`Name <email> (url)`, default `author`),
+`--icon`; the feed metadata is validated before anything is written. The pure
+planner is `plan_blog_init` in `blog_init.ts`.
+
+Gro discovers `*.gen.ts` only in the local project and
 runs a project task only by its path, so a consuming project keeps thin local
 files that reuse fuz_blog's logic — `src/lib/blog.gen.ts` can be
 `export {gen} from '@fuzdev/fuz_blog/blog.gen.ts'`, and `src/lib/post.task.ts`
@@ -126,6 +142,7 @@ src/
 │   ├── blog_config.ts      # BlogConfig, the blogs registry's validation and lookup
 │   ├── blog_feed_context.ts # blog_feed_context (imports fuz_ui, so kept out of `blog.ts`)
 │   ├── blog_helpers.ts     # node build helpers: load_blogs_module, collect_blog_post_dirs, create_blog_post
+│   ├── blog_init.ts        # plan_blog_init, the pure planner of init.task.ts
 │   ├── blog_post_dir.ts    # `<id>-<slug>` post directory parsing, validation, and lookup
 │   ├── blog_post_id.ts     # BlogPostId, the id grammar, and the blog_post_id param matcher
 │   ├── blog_post_pathname.ts # resolve_blog_post_pathname, a post link under the base path
@@ -137,6 +154,7 @@ src/
 │   ├── BlogPostList.svelte # prop-driven post listing (takes a `feed`)
 │   ├── BlogPostHeader.svelte
 │   ├── FeedItemDate.svelte # date formatting component
+│   ├── init.task.ts        # wires fuz_blog into a consumer project
 │   ├── post.task.ts        # post scaffolding task
 │   └── update_post.task.ts # date_modified update task
 ├── test/                   # test files (not co-located), shared fixtures in blog_test_helpers.ts
@@ -218,6 +236,12 @@ fails `gro gen`.
 The pure part, from loaded posts to outputs, is `create_blog_gen_outputs()` in
 `blog_helpers.ts`.
 
+Generated code that imports a relative `.ts` module (`../feed.ts` here, and
+`./feed.ts` / `./blogs.ts` in init's files) interpolates the specifier from a
+constant, because gro's dist pass rewrites relative `.ts` specifiers to `.js`
+even inside template strings. `src/test/blog_init.test.ts` runs that rewrite
+over both modules to pin it.
+
 ### Key library files
 
 types and data:
@@ -255,7 +279,14 @@ types and data:
   `update_blog_post()`, `scaffold_blog_post()`, `to_blog_post_slug()`,
   `to_blog_dir()` (a blog's `src/routes/<dirname>`),
   `create_blog_gen_outputs()` (pure), `to_blog_post_redirect_route_path()`,
-  `BLOG_POST_REDIRECT_ROUTE_DIRNAME`
+  `BLOG_POST_REDIRECT_ROUTE_DIRNAME`, `load_blogs_registry()` (the lenient
+  loader, allowing an empty registry), and init's `load_blog_init_state()` /
+  `resolve_params_module_path()` / `to_params_module_create_path()` /
+  `write_blog_init_file()` (formats with
+  `format_file`, never overwrites)
+- `blog_init.ts` - `plan_blog_init()`, the pure planner of `init.task.ts`: project
+  state in, the files to create, the existing ones to skip, and the edits to
+  suggest out; `parse_blog_init_author()` for npm `author` values
 - `util.ts` - `format_date()`, the UTC calendar date like `Jul 10, 2024`, so
   prerendered dates don't depend on the build machine's timezone
 
@@ -275,6 +306,10 @@ components:
 
 tasks:
 
+- `init.task.ts` - run in a consumer by path,
+  `gro task node_modules/@fuzdev/fuz_blog/dist/init.task.js`, creates the
+  missing wiring for a blog and runs `gro gen`; refuses in fuz_blog itself, without
+  `src/routes`, or with a custom `files.routes`
 - `post.task.ts` - `gro task src/lib/post.task.ts "Title"` scaffolds a new post
   at `<id>-<slug>/`, the slug from the title or `--slug`
 - `update_post.task.ts` - `gro task src/lib/update_post.task.ts <post>` updates `date_modified`

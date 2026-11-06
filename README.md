@@ -17,6 +17,13 @@ Docs are at [**blog.fuz.dev**](https://blog.fuz.dev/docs).
 npm i -D @fuzdev/fuz_blog
 ```
 
+Then wire up a blog in your SvelteKit project, creating only the files it's missing:
+
+```bash
+gro task node_modules/@fuzdev/fuz_blog/dist/init.task.js
+gro task src/lib/post.task.ts "Hello world"
+```
+
 ## Contributing
 
 [fuz.dev/contributing](https://www.fuz.dev/contributing)

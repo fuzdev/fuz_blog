@@ -31,6 +31,28 @@
 			<Code lang="bash" content={`npm i -D @fuzdev/fuz_blog`} />
 		</TomeSection>
 		<TomeSection>
+			<TomeSectionHeader text="Set up a blog" />
+			<p>In a SvelteKit project, run fuz_blog's <code>init</code> task by its path:</p>
+			<Code lang="bash" content={`gro task node_modules/@fuzdev/fuz_blog/dist/init.task.js`} />
+			<p>
+				It creates whatever is missing -- the <code>src/routes/blogs.ts</code> registry, the local
+				gen and task files, <code>src/params.ts</code>, the blog's <code>+layout.svelte</code> and
+				<code>+page.svelte</code>, and a root <code>+layout.svelte</code> linking the feeds -- then
+				runs <code>gro gen</code>. It never overwrites a file: when one exists without what the blog
+				needs, like an existing root layout without the feed links, it prints the code to add.
+				Running it again changes nothing. The feed metadata defaults from
+				<code>package.json</code>'s <code>homepage</code>, <code>name</code>,
+				<code>description</code>, and <code>author</code>, overridden by flags -- pass
+				<code>--url</code> when <code>homepage</code> is a repo page rather than your site:
+			</p>
+			<Code
+				lang="bash"
+				content={`$ gro task node_modules/@fuzdev/fuz_blog/dist/init.task.js --dirname notes --url https://www.example.com
+$ gro task node_modules/@fuzdev/fuz_blog/dist/init.task.js --help`}
+			/>
+			<p>The sections below describe the pieces it wires up.</p>
+		</TomeSection>
+		<TomeSection>
 			<TomeSectionHeader text="Declare your blogs" />
 			<p>
 				Declare your blogs in <code>src/routes/blogs.ts</code> — one entry per blog, each with a
@@ -230,8 +252,9 @@ ${'<'}script lang="ts">
 		<TomeSection>
 			<TomeSectionHeader text="Create a new post" />
 			<p>
-				Gro runs a project task by its path, so keep a one-line local task file that re-exports
-				fuz_blog's, and the same for <code>update_post.task.ts</code>:
+				Gro runs a project task by its path, so <code>init</code> creates a one-line local task file
+				that re-exports fuz_blog's, and the same for <code>update_post.task.ts</code> and
+				<code>blog.gen.ts</code>:
 			</p>
 			<Code
 				lang="ts"
