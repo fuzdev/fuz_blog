@@ -12,6 +12,7 @@
 	import { logo_fuz_blog } from '@fuzdev/fuz_ui/logos.ts';
 	import type { Snippet } from 'svelte';
 	import pkg_json from 'virtual:pkg.json';
+	import { to_blog_feed_url } from '#lib/blog.ts';
 
 	import Settings from './Settings.svelte';
 	import { blogs } from './blogs.ts';
@@ -36,7 +37,7 @@
 			rel="alternate"
 			type="application/atom+xml"
 			title={blog.feed.title}
-			href={blog.feed.atom.feed_url}
+			href={to_blog_feed_url(blog.feed.home_page_url)}
 		/>
 	{/each}
 </svelte:head>

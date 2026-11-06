@@ -6,8 +6,10 @@ import {
 	resolve_blog_config,
 	resolve_blog_feed_item,
 	resolve_blog_post_dirs,
+	to_blog_feed_url,
 	to_blog_post_dirname,
 	to_next_blog_post_id,
+	validate_blog_configs,
 	BlogFeed,
 	BlogFeedItem,
 	BlogPostMetadata,
@@ -185,6 +187,22 @@ describe('post route pathname', () => {
 	});
 });
 
+describe('to_blog_feed_url', () => {
+	test('appends feed.xml to the blog index url', () => {
+		assert.equal(
+			to_blog_feed_url('https://blog.fuz.dev/blog'),
+			'https://blog.fuz.dev/blog/feed.xml'
+		);
+	});
+
+	test('ignores a trailing slash', () => {
+		assert.equal(
+			to_blog_feed_url('https://user.github.io/repo/blog/'),
+			'https://user.github.io/repo/blog/feed.xml'
+		);
+	});
+});
+
 describe('resolve_blog_config', () => {
 	const feed: BlogFeedMetadata = {
 		id: 'https://blog.fuz.dev/',
@@ -193,8 +211,7 @@ describe('resolve_blog_config', () => {
 		description: 'desc',
 		icon: 'https://blog.fuz.dev/favicon.png',
 		favicon: 'https://blog.fuz.dev/favicon.png',
-		author: { name: 'Test' },
-		atom: { feed_url: 'https://blog.fuz.dev/blog/feed.xml' }
+		author: { name: 'Test' }
 	};
 	const blogs: Array<BlogConfig> = [
 		{ dirname: 'blog', feed },
@@ -211,6 +228,38 @@ describe('resolve_blog_config', () => {
 
 	test('throws listing the known dirnames for an unknown blog', () => {
 		assert.throws(() => resolve_blog_config(blogs, 'nope'), /expected one of: blog, autoblog/);
+	});
+});
+
+describe('validate_blog_configs', () => {
+	const feed: BlogFeedMetadata = {
+		id: 'https://blog.fuz.dev/',
+		title: 'test blog',
+		home_page_url: 'https://blog.fuz.dev/blog',
+		description: 'desc',
+		icon: 'https://blog.fuz.dev/favicon.png',
+		favicon: 'https://blog.fuz.dev/favicon.png',
+		author: { name: 'Test' }
+	};
+
+	test('accepts a valid registry', () => {
+		assert.doesNotThrow(() =>
+			validate_blog_configs([
+				{ dirname: 'blog', feed },
+				{ dirname: 'autoblog', feed: { ...feed, home_page_url: 'https://blog.fuz.dev/autoblog/' } }
+			])
+		);
+	});
+
+	test('throws on a dirname with a .. segment, before checking duplicates', () => {
+		assert.throws(
+			() =>
+				validate_blog_configs([
+					{ dirname: 'blog', feed },
+					{ dirname: 'x/../blog', feed }
+				]),
+			/invalid blog dirname "x\/\.\.\/blog"/
+		);
 	});
 });
 

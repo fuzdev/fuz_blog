@@ -37,9 +37,15 @@ library itself or in a consuming project, adjusting import paths accordingly.
 
 Blogs are declared in the consumer's `src/routes/blogs.ts`, which exports
 `blogs: Array<BlogConfig>` — one entry per blog with a route `dirname`, feed
-metadata, and an optional `scaffold` function customizing what
+metadata (`BlogFeedMetadata`), and an optional `scaffold` function customizing what
 `gro task src/lib/post.task.ts` generates for that blog. `--blog` defaults to
-the first registered entry.
+the first registered entry. The feed's `home_page_url` is the blog's index
+page: its pathname must end with `/<dirname>`, after any deploy base path
+(`https://user.github.io/repo/blog` for `dirname: 'blog'`), because post URLs
+derive from it while the posts are routes under `src/routes/<dirname>`. The
+feed's own URL is derived too, `<home_page_url>/feed.xml` via
+`to_blog_feed_url()`, matching where gen writes `static/<dirname>/feed.xml` —
+it is not configured.
 
 Each blog generates its own `src/routes/<dirname>/feed.ts` and, once it has
 posts, `src/routes/<dirname>/[post=blog_post_id]/+page.ts`. That route's
@@ -165,16 +171,26 @@ add its own fields (they stay on the page's `post` and never reach the feed).
 `<home_page_url>/<id>` (stable across slug changes, resolving via the redirect),
 `url` is `<home_page_url>/<id>-<slug>`, and `pathname` is `/<dirname>/<id>-<slug>`.
 
-**BlogFeed**: Complete feed structure extending `Feed`, provided via
-`blog_feed_context`. Validated at gen time (a strict `object`), so a malformed
-post or a leaked field fails `gro gen`.
+**BlogFeedMetadata**: The configured feed fields — `Feed` without `items` (from
+the posts) and `atom` (derived).
+
+**BlogFeed**: Complete feed structure extending `Feed`: the metadata, the
+derived `atom.feed_url`, and the items, provided via `blog_feed_context`.
+Validated at gen time (a strict `object`), so a malformed post or a leaked field
+fails `gro gen`.
 
 ### Code generation flow
 
 `blog.gen.ts` runs during `gro gen`:
 
-1. Scans `/src/routes/blog/` for `<id>-<slug>` post directories, sorted by id
-2. Loads and validates each post's `BlogPostMetadata` from module exports
+1. Loads the blogs registry with `load_blogs_module()`, which validates it with
+   `validate_blog_configs()` (the post tasks share this, so nothing touches a
+   post file first) — well-formed, unique `dirname`s, a strict
+   `BlogFeedMetadata`, and a `home_page_url` without query or fragment whose
+   pathname ends with `/<dirname>`
+2. Scans `/src/routes/blog/` for `<id>-<slug>` post directories, sorted by id,
+   and validates each post's `BlogPostMetadata` from module exports, with
+   `date_modified` no earlier than `date_published`
 3. Generates three outputs:
    - `/static/blog/feed.xml` - Atom feed for RSS readers
    - `/src/routes/blog/feed.ts` - serialized BlogFeed object for runtime
@@ -189,9 +205,9 @@ The pure part, from loaded posts to outputs, is `create_blog_gen_outputs()` in
 types and data:
 
 - `blog.ts` - `BlogPostMetadata`, `BlogFeedItem`, `BlogPostId`, `BlogPostDir`,
-  `BlogFeed`, `BlogConfig`, `blog_feed_context`, and the pure
-  `parse_blog_post_dirname()` / `resolve_blog_post_dirs()` /
-  `resolve_blog_config()` / `resolve_blog_feed_item()`
+  `BlogFeedMetadata`, `BlogFeed`, `BlogConfig`, `blog_feed_context`, and the pure
+  `to_blog_feed_url()` / `validate_blog_configs()` / `parse_blog_post_dirname()` /
+  `resolve_blog_post_dirs()` / `resolve_blog_config()` / `resolve_blog_feed_item()`
 - `blog_post_id.ts` - `BLOG_POST_ID_SOURCE`, `is_blog_post_id_param()`, and the
   `blog_post_id_param` matcher, dependency-free since SvelteKit loads matchers
   eagerly on the client
@@ -232,7 +248,8 @@ tasks:
 - `post.task.ts` - `gro task src/lib/post.task.ts "Title"` scaffolds a new post
   at `<id>-<slug>/`, the slug from the title or `--slug`
 - `update_post.task.ts` - `gro task src/lib/update_post.task.ts [id]` updates `date_modified`,
-  failing unless exactly one `date_modified` value matches
+  failing unless exactly one `date_modified` value matches, or when the date is
+  before the post's `date_published` (when the file has exactly one quoted value)
 
 ### Svelte 5 patterns
 
@@ -249,7 +266,7 @@ Set `blog_feed_context` with the generated feed in the blog's own
 `src/routes/<dirname>/+layout.svelte`, as the template does, or pass the
 feed/item directly as props to `BlogPostList` / `BlogPost`. The template's root
 `+layout.svelte` only links each registered blog's feed for autodiscovery,
-reading the URLs from `blogs.ts`.
+deriving the URLs from `blogs.ts` with `to_blog_feed_url()`.
 
 ## Creating a blog post
 

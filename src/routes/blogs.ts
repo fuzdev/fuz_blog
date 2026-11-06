@@ -15,9 +15,6 @@ export const blogs: Array<BlogConfig> = [
 				name: 'Ryan Atkinson',
 				url: 'https://www.ryanatkn.com/',
 				email: 'mail@ryanatkn.com'
-			},
-			atom: {
-				feed_url: 'https://blog.fuz.dev/blog/feed.xml' // TODO source of truth?
 			}
 		}
 	}

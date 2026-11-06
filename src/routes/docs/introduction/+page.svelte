@@ -53,6 +53,13 @@ export const blogs: Array<BlogConfig> = [
 ];`}
 			/>
 			<p>
+				Set <code>home_page_url</code> to the blog's index page: its path must end with the
+				<code>dirname</code>, after any deploy base path, and <code>gro gen</code> fails otherwise.
+				Post URLs derive from it, and so does the feed's own URL,
+				<code>&lt;home_page_url&gt;/feed.xml</code> (see
+				<DeclarationLink name="to_blog_feed_url" />).
+			</p>
+			<p>
 				See <DeclarationLink name="BlogConfig" /> for the rest of the options, like customizing what
 				<code>gro task src/lib/post.task.ts</code> scaffolds.
 			</p>
@@ -115,6 +122,8 @@ ${'<'}script lang="ts">
 			<Code
 				content={`<!-- src/routes/+layout.svelte -->
 ${'<'}script lang="ts">
+	import {to_blog_feed_url} from '@fuzdev/fuz_blog/blog.ts';
+
 	import {blogs} from './blogs.ts';
 </script>
 
@@ -125,7 +134,7 @@ ${'<'}script lang="ts">
 			rel="alternate"
 			type="application/atom+xml"
 			title={blog.feed.title}
-			href={blog.feed.atom.feed_url}
+			href={to_blog_feed_url(blog.feed.home_page_url)}
 		/>
 	{/each}
 </svelte:head>`}

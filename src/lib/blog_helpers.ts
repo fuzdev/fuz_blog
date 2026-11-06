@@ -12,8 +12,10 @@ import {
 	BlogPostMetadata,
 	resolve_blog_feed_item,
 	resolve_blog_post_dirs,
+	to_blog_feed_url,
 	to_blog_post_dirname,
 	to_next_blog_post_id,
+	validate_blog_configs,
 	type BlogConfig,
 	type BlogPostDir,
 	type BlogPostId,
@@ -27,7 +29,8 @@ import {
 // it stays free of node and gro imports.
 
 /**
- * Loads the consumer's `src/routes/blogs.ts` registry.
+ * Loads the consumer's `src/routes/blogs.ts` registry and validates it with
+ * `validate_blog_configs`.
  */
 export const load_blogs_module = async (dir: string): Promise<BlogsModule> => {
 	const path = join(dir, 'src/routes/blogs.ts');
@@ -40,6 +43,8 @@ export const load_blogs_module = async (dir: string): Promise<BlogsModule> => {
 	if (!Array.isArray(mod.blogs) || mod.blogs.length === 0) {
 		throw new Error(`expected ${path} to export a non-empty \`blogs\` array`);
 	}
+	// before any post path is built from a `dirname`
+	validate_blog_configs(mod.blogs);
 	return mod;
 };
 
@@ -208,8 +213,9 @@ export interface UpdatedBlogPost {
  * Rewrites the `date_modified` of an existing post file for `config`, returning
  * its id and path. Does not run `gen` - callers invoke that afterward (see
  * `update_post.task.ts`).
- * @throws Error when no post has the id, or the file has other than exactly one
- * quoted `date_modified` value to replace
+ * @throws Error when no post has the id, `date` is before the post's `date_published`
+ * (when the file has exactly one quoted value to read), or the file has other than
+ * exactly one quoted `date_modified` value to replace
  */
 export const update_blog_post = async (
 	options: UpdateBlogPostOptions
@@ -224,6 +230,17 @@ export const update_blog_post = async (
 	}
 	const path = to_blog_post_path(blog_dir, post_dir);
 	const content = await readFile(path, 'utf8');
+	// best effort: gen enforces the order on the loaded metadata, this only fails earlier
+	// when the file has exactly one quoted `date_published` to read
+	const published = [...content.matchAll(/date_published:\s*(['"])([^'"]*)\1/g)];
+	if (published.length === 1) {
+		const date_published = published[0]![2]!;
+		if (Date.parse(date) < Date.parse(date_published)) {
+			throw new Error(
+				`date ${JSON.stringify(date)} is before the post's date_published ${JSON.stringify(date_published)} in ${path}`
+			);
+		}
+	}
 	const pattern = /date_modified:\s*(['"])[^'"]*\1/g;
 	const match_count = content.match(pattern)?.length ?? 0;
 	if (match_count !== 1) {
@@ -282,12 +299,18 @@ export interface BlogGenOutput {
  * Creates the `gro gen` outputs for each blog: its `feed.xml`, its `feed.ts`, and,
  * when it has posts, its `[post=blog_post_id]` redirect route. A blog without posts
  * gets no redirect route, because prerendering fails on a dynamic route with no entries.
- * @throws Error on invalid post metadata, a feed that fails validation, or a
- * redirect route left on disk for a blog without posts (gen cannot delete it)
+ * The feed's `atom.feed_url` is derived from `home_page_url` by `to_blog_feed_url`.
+ * @throws Error on an invalid blogs registry (see `validate_blog_configs`), invalid
+ * post metadata, a post whose `date_modified` precedes its `date_published`, a feed
+ * that fails validation, or a redirect route left on disk for a blog without posts
+ * (gen cannot delete it)
  */
 export const create_blog_gen_outputs = (options: BlogGenOptions): Array<BlogGenOutput> => {
 	const { dir, routes_path = 'src/routes', fuz_blog_import_path, origin_path } = options;
 	const outputs: Array<BlogGenOutput> = [];
+
+	// `load_blogs_module` already validated before posts were read, this keeps the pure path complete
+	validate_blog_configs(options.blogs.map((b) => b.config));
 
 	for (const { config, post_dirs, posts, redirect_route_exists } of options.blogs) {
 		const { dirname: blog_dirname, feed: blog } = config;
@@ -302,11 +325,21 @@ export const create_blog_gen_outputs = (options: BlogGenOptions): Array<BlogGenO
 					`invalid post metadata at ${blog_dirname}/${to_blog_post_dirname(post_dir)}:\n${parsed.issues.map(s.format_issue).join('\n')}`
 				);
 			}
+			const { date_published, date_modified } = parsed.value;
+			if (Date.parse(date_modified) < Date.parse(date_published)) {
+				throw new Error(
+					`post ${JSON.stringify(blog_dirname + '/' + to_blog_post_dirname(post_dir))} has a date_modified ${JSON.stringify(date_modified)} before its date_published ${JSON.stringify(date_published)}`
+				);
+			}
 			return resolve_blog_feed_item(post_dir, blog_dirname, blog.home_page_url, parsed.value);
 		});
 
 		// strict output: a leaked field or malformed entry fails here, at gen time
-		const parsed_feed = s.parse(BlogFeed, { ...blog, items });
+		const parsed_feed = s.parse(BlogFeed, {
+			...blog,
+			atom: { feed_url: to_blog_feed_url(blog.home_page_url) },
+			items
+		});
 		if (!parsed_feed.ok) {
 			throw new Error(
 				`generated ${blog_dirname} feed failed validation:\n${parsed_feed.issues.map(s.format_issue).join('\n')}`
