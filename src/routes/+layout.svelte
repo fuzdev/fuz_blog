@@ -30,7 +30,6 @@
 
 <svelte:head>
 	<title>fuz_blog</title>
-	<!-- TODO add JSONFeed -->
 	<!-- site-wide feed autodiscovery, each blog's feed context is set in its own layout -->
 	{#each blogs as blog (blog.dirname)}
 		<link

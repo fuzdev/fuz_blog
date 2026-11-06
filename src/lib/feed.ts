@@ -1,11 +1,7 @@
 import * as s from '@fuzdev/fuz_schema/schema.ts';
 import { Url } from '@fuzdev/fuz_util/url.ts';
 
-// TODO publish `feed.json` not just the Atom `feed.xml`
-
-// TODO also publish rss probably
-
-// TODO finish mapping with Atom and RSS
+// TODO publish `feed.json` and RSS beside the Atom `feed.xml`, finishing the mapping between them
 // https://www.jsonfeed.org/mappingrssandatom/
 
 // the pattern of Zod 4's default `z.iso.datetime()`: a calendar-valid date, a time with
@@ -31,6 +27,7 @@ export const FeedUrl = s.pipe(
 	Url,
 	s.check((v: string) => v === v.trim(), 'a URL without surrounding whitespace')
 );
+export type FeedUrl = s.Infer<typeof FeedUrl>;
 
 // the email pattern of Zod's `z.email()`, in the form without lookaheads
 const EMAIL_PATTERN =
@@ -74,7 +71,6 @@ export const Feed = s.object({
 		url: s.optional(FeedUrl),
 		email: s.optional(Email)
 	}),
-	// TODO date_modified for entire feed?
 	items: s.array(FeedItem),
 	atom: s.object({
 		feed_url: FeedUrl
@@ -83,7 +79,6 @@ export const Feed = s.object({
 	// yes if the goal is to match the data structure of JSON Feed as much as possible,
 	// no if the goal is to put shared properties on the root and format-specific properties in a namespace
 	// jsonfeed: {version, feed_url, expired?}
-	// TODO support RSS
 });
 export type Feed = s.Infer<typeof Feed>;
 

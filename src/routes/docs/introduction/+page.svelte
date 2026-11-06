@@ -96,6 +96,53 @@ export const params = defineParams({blog_post_id: blog_post_id_param});`}
 			/>
 		</TomeSection>
 		<TomeSection>
+			<TomeSectionHeader text="Render a post" />
+			<p>
+				A post's <code>+page.svelte</code> exports its metadata as <code>post</code> from its
+				<code>&lt;script module&gt;</code>, checked against
+				<DeclarationLink name="BlogPostMetadata" />, and renders whatever it likes. Wrapping the
+				content in <code>BlogPost</code> adds the title, dates, and canonical link from the post's
+				entry in the blog's feed context (see below); without a matching entry it renders an error
+				in place of the content:
+			</p>
+			<Code
+				content={`<!-- src/routes/blog/1-hello-world/+page.svelte -->
+${'<'}script lang="ts" module>
+	import type {BlogPostMetadata} from '@fuzdev/fuz_blog/blog.ts';
+
+	export const post = {
+		title: 'Hello world',
+		date_published: '2024-07-10T16:04:49.688Z',
+		date_modified: '2024-07-10T16:04:49.688Z',
+		summary: 'the first post',
+		tags: ['meta'],
+	} satisfies BlogPostMetadata;
+</script>
+
+${'<'}script lang="ts">
+	import BlogPost from '@fuzdev/fuz_blog/BlogPost.svelte';
+</script>
+
+<BlogPost {post}>
+	<p>the content</p>
+</BlogPost>`}
+			/>
+			<p>
+				<code>BlogPostList</code> renders a blog's index, newest first, from its generated
+				<code>feed</code>:
+			</p>
+			<Code
+				content={`<!-- src/routes/blog/+page.svelte -->
+${'<'}script lang="ts">
+	import BlogPostList from '@fuzdev/fuz_blog/BlogPostList.svelte';
+
+	import {feed} from './feed.ts';
+</script>
+
+<BlogPostList {feed} />`}
+			/>
+		</TomeSection>
+		<TomeSection>
 			<TomeSectionHeader text="Publish the feed" />
 			<p>
 				Set each blog's generated <code>feed</code> as the feed context in its own layout, so
@@ -160,9 +207,14 @@ $ gro task src/lib/post.task.ts --help`}
 		</TomeSection>
 		<TomeSection>
 			<TomeSectionHeader text="Update an existing post" />
+			<p>
+				Name the post by its id, its directory name, or its slug, which must match only one post:
+			</p>
 			<Code
 				lang="bash"
 				content={`$ gro task src/lib/update_post.task.ts 1
+$ gro task src/lib/update_post.task.ts 1-hello-world
+$ gro task src/lib/update_post.task.ts hello-world
 $ gro task src/lib/update_post.task.ts --help`}
 			/>
 		</TomeSection>

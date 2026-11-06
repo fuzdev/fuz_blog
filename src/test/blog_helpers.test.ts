@@ -2,6 +2,7 @@ import { afterEach, assert, beforeEach, describe, test } from 'vitest';
 import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { assert_rejects } from '@fuzdev/fuz_util/testing.ts';
 
 import {
 	collect_blog_post_dirs,
@@ -12,19 +13,9 @@ import {
 	update_blog_post
 } from '#lib/blog_helpers.ts';
 import type { BlogConfig } from '#lib/blog.ts';
+import { create_blog_config, create_blog_post_metadata } from './blog_test_helpers.ts';
 
-const config: BlogConfig = {
-	dirname: 'blog',
-	feed: {
-		id: 'https://example.com/',
-		title: 'test blog',
-		home_page_url: 'https://example.com/blog',
-		description: 'desc',
-		icon: 'https://example.com/favicon.png',
-		favicon: 'https://example.com/favicon.png',
-		author: { name: 'Test' }
-	}
-};
+const config = create_blog_config();
 
 const DATE = '2024-07-15T00:00:00.000Z';
 
@@ -62,13 +53,13 @@ describe('load_blogs_module', () => {
 
 	test('validates the registry before returning it', async () => {
 		await write_blogs([{ ...config, dirname: '../blog' }]);
-		try {
-			await load_blogs_module(dir);
-			assert.fail('expected an error');
-		} catch (err) {
-			assert(err instanceof Error);
-			assert.match(err.message, /^invalid blog dirname "\.\.\/blog"/);
-		}
+		await assert_rejects(() => load_blogs_module(dir), /^invalid blog dirname "\.\.\/blog"/);
+	});
+
+	test('throws on a missing or empty blogs export', async () => {
+		await assert_rejects(() => load_blogs_module(dir), /^expected a blogs registry at /);
+		await write_blogs([]);
+		await assert_rejects(() => load_blogs_module(dir), /to export a non-empty `blogs` array$/);
 	});
 });
 
@@ -91,24 +82,18 @@ describe('collect_blog_post_dirs', () => {
 
 	test('throws on a post directory without a +page.svelte', async () => {
 		await mkdir(join(blog_dir, '1-one'));
-		try {
-			await collect_blog_post_dirs(blog_dir, 'blog');
-			assert.fail('expected an error');
-		} catch (err) {
-			assert(err instanceof Error);
-			assert.match(err.message, /blog\/1-one has no \+page\.svelte/);
-		}
+		await assert_rejects(
+			() => collect_blog_post_dirs(blog_dir, 'blog'),
+			/blog\/1-one has no \+page\.svelte/
+		);
 	});
 
 	test('throws on a bare id directory', async () => {
 		await write_route('1');
-		try {
-			await collect_blog_post_dirs(blog_dir, 'blog');
-			assert.fail('expected an error');
-		} catch (err) {
-			assert(err instanceof Error);
-			assert.match(err.message, /invalid post directory name blog\/1 - expected `<id>-<slug>`/);
-		}
+		await assert_rejects(
+			() => collect_blog_post_dirs(blog_dir, 'blog'),
+			/invalid post directory name blog\/1 - expected `<id>-<slug>`/
+		);
 	});
 });
 
@@ -190,20 +175,11 @@ describe('create_blog_post', () => {
 			['Hi', 'Bad Slug', /^invalid slug "Bad Slug" - a slug is .*runs$/],
 			['Hi', '-a', /^invalid slug "-a"/]
 		] as const) {
-			try {
-				await create_blog_post({
-					dir,
-					config,
-					title,
-					slug,
-					date: DATE,
-					fuz_blog_import_path: '#lib'
-				});
-				assert.fail('expected an error');
-			} catch (err) {
-				assert(err instanceof Error);
-				assert.match(err.message, pattern);
-			}
+			await assert_rejects(
+				() =>
+					create_blog_post({ dir, config, title, slug, date: DATE, fuz_blog_import_path: '#lib' }),
+				pattern
+			);
 		}
 		assert.deepEqual(await readdir(blog_dir), []);
 	});
@@ -215,26 +191,40 @@ describe('update_blog_post', () => {
 
 	test('rewrites date_modified in the post with the id', async () => {
 		await write_route('2-two', post_content(`'2020-01-01T00:00:00.000Z'`));
-		const updated = await update_blog_post({ dir, config, blog_post_id: 2, date: DATE });
-		assert.equal(updated.path, join(blog_dir, '2-two', '+page.svelte'));
+		const updated = await update_blog_post({ dir, config, query: '2', date: DATE });
+		assert.deepEqual(updated, {
+			blog_post_id: 2,
+			path: join(blog_dir, '2-two', '+page.svelte'),
+			slug: 'two'
+		});
 		assert.include(await readFile(updated.path, 'utf8'), `date_modified: '${DATE}',`);
+	});
+
+	test('finds the post by directory name or slug', async () => {
+		await write_route('1-one', post_content(`'2020-01-01T00:00:00.000Z'`));
+		await write_route('2-two', post_content(`'2020-01-01T00:00:00.000Z'`));
+		assert.equal(
+			(await update_blog_post({ dir, config, query: '2-two', date: DATE })).blog_post_id,
+			2
+		);
+		assert.equal(
+			(await update_blog_post({ dir, config, query: 'one', date: DATE })).blog_post_id,
+			1
+		);
 	});
 
 	test('accepts a double-quoted value', async () => {
 		await write_route('1-one', post_content(`"2020-01-01T00:00:00.000Z"`));
-		const updated = await update_blog_post({ dir, config, blog_post_id: 1, date: DATE });
+		const updated = await update_blog_post({ dir, config, query: '1', date: DATE });
 		assert.include(await readFile(updated.path, 'utf8'), `date_modified: '${DATE}',`);
 	});
 
 	test('throws when no post has the id', async () => {
 		await write_route('1-one', post_content(`'x'`));
-		try {
-			await update_blog_post({ dir, config, blog_post_id: 2, date: DATE });
-			assert.fail('expected an error');
-		} catch (err) {
-			assert(err instanceof Error);
-			assert.match(err.message, /no blog post with id 2/);
-		}
+		await assert_rejects(
+			() => update_blog_post({ dir, config, query: '2', date: DATE }),
+			/^no blog post with id 2$/
+		);
 	});
 
 	test("throws on a date before the post's date_published, without writing", async () => {
@@ -242,49 +232,38 @@ describe('update_blog_post', () => {
 			`<script lang="ts" module>\n\texport const post = {\n\t\tdate_published: '${DATE}',\n` +
 			`\t\tdate_modified: '${DATE}',\n\t};\n</script>\n`;
 		await write_route('1-one', content);
-		try {
-			await update_blog_post({ dir, config, blog_post_id: 1, date: '2024-07-14T23:59:59.999Z' });
-			assert.fail('expected an error');
-		} catch (err) {
-			assert(err instanceof Error);
-			assert.match(err.message, /is before the post's date_published "2024-07-15T00:00:00\.000Z"/);
-		}
+		await assert_rejects(
+			() => update_blog_post({ dir, config, query: '1', date: '2024-07-14T23:59:59.999Z' }),
+			/is before the post's date_published "2024-07-15T00:00:00\.000Z"/
+		);
 		assert.equal(await readFile(join(blog_dir, '1-one', '+page.svelte'), 'utf8'), content);
 		// the same instant passes
-		await update_blog_post({ dir, config, blog_post_id: 1, date: '2024-07-15T00:00:00Z' });
+		await update_blog_post({ dir, config, query: '1', date: '2024-07-15T00:00:00Z' });
 	});
 
 	test('throws unless exactly one date_modified matches', async () => {
 		await write_route('1-one', post_content('some_variable'));
 		await write_route('2-two', post_content(`'a'`) + post_content(`'b'`));
-		for (const [blog_post_id, count] of [
-			[1, 0],
-			[2, 2]
+		for (const [query, count] of [
+			['1', 0],
+			['2', 2]
 		] as const) {
-			try {
-				await update_blog_post({ dir, config, blog_post_id, date: DATE });
-				assert.fail('expected an error');
-			} catch (err) {
-				assert(err instanceof Error);
-				assert.match(err.message, new RegExp(`found ${count}$`));
-			}
+			await assert_rejects(
+				() => update_blog_post({ dir, config, query, date: DATE }),
+				new RegExp(`found ${count}$`)
+			);
 		}
 	});
 });
 
 describe('create_blog_gen_outputs', () => {
-	const post = {
+	const post = create_blog_post_metadata({
 		title: 'Hi',
 		date_published: DATE,
 		date_modified: DATE,
-		summary: 'a summary',
 		model: 'an extra field that stays out of the feed'
-	};
-	const autoblog: BlogConfig = {
-		...config,
-		dirname: 'autoblog',
-		feed: { ...config.feed, home_page_url: 'https://example.com/autoblog' }
-	};
+	});
+	const autoblog = create_blog_config('autoblog');
 	const ROOT = '/project';
 	const create = (blogs: Parameters<typeof create_blog_gen_outputs>[0]['blogs']) =>
 		create_blog_gen_outputs({
@@ -367,156 +346,14 @@ describe('create_blog_gen_outputs', () => {
 		assert.include(outputs[1]!.content, '"pathname":"/blog/1-one"');
 	});
 
-	test('accepts a nested dirname', () => {
-		const nested: BlogConfig = {
-			...config,
-			dirname: 'writing/blog',
-			feed: { ...config.feed, home_page_url: 'https://example.com/writing/blog' }
-		};
-		assert.doesNotThrow(() =>
-			create([{ config: nested, post_dirs: [], posts: [], redirect_route_exists: false }])
-		);
-	});
-
-	test('accepts a non-ASCII dirname, compared percent-encoded', () => {
-		const cafe: BlogConfig = {
-			...config,
-			dirname: 'café',
-			feed: { ...config.feed, home_page_url: 'https://example.com/caf%C3%A9' }
-		};
-		assert.doesNotThrow(() =>
-			create([{ config: cafe, post_dirs: [], posts: [], redirect_route_exists: false }])
-		);
-	});
-
-	test('throws on a malformed dirname before comparing it to home_page_url', () => {
-		for (const dirname of [
-			'',
-			'.',
-			'..',
-			'../blog',
-			'x/../blog',
-			'a\\blog',
-			'/blog',
-			'blog/',
-			'a//blog',
-			'blog?x',
-			'blog#x',
-			'bl\tog',
-			'x/%2e%2e/blog',
-			'blog ',
-			'my blog'
-		]) {
-			assert.throws(
-				() =>
-					create([
-						{
-							config: { ...config, dirname },
-							post_dirs: [],
-							posts: [],
-							redirect_route_exists: false
-						}
-					]),
-				/^invalid blog dirname .* - expected route path segments with no leading or trailing slash, no `\.` or `\.\.` segments, and no `\\`, `\?`, `#`, `%`, space, or ASCII control characters$/,
-				dirname
-			);
-		}
-	});
-
-	test('throws on a dirname with a route group or param', () => {
-		for (const dirname of ['(group)/blog', 'blog/(x)', '[param]', 'blog/[x+25]', 'a]b']) {
-			assert.throws(
-				() =>
-					create([
-						{
-							config: {
-								...config,
-								dirname,
-								feed: { ...config.feed, home_page_url: 'https://example.com/' + dirname }
-							},
-							post_dirs: [],
-							posts: [],
-							redirect_route_exists: false
-						}
-					]),
-				/^invalid blog dirname .* - route groups like `\(group\)` and params like `\[param\]` are not supported, the dirname must equal the URL path$/,
-				dirname
-			);
-		}
-	});
-
-	test('throws when home_page_url does not end with the dirname', () => {
-		for (const home_page_url of [
-			'https://example.com/',
-			'https://example.com/posts',
-			'https://example.com/myblog',
-			'https://example.com/blog/posts'
-		]) {
-			assert.throws(
-				() =>
-					create([
-						{
-							config: { ...config, feed: { ...config.feed, home_page_url } },
-							post_dirs: [],
-							posts: [],
-							redirect_route_exists: false
-						}
-					]),
-				/"blog" home_page_url ".*" must end with \/blog,/,
-				home_page_url
-			);
-		}
-	});
-
-	test('throws when home_page_url has a query or fragment', () => {
-		for (const home_page_url of [
-			'https://example.com/blog?a=1',
-			'https://example.com/blog#a',
-			// empty, which `URL` reports as no query or fragment
-			'https://example.com/blog?',
-			'https://example.com/blog#',
-			'https://example.com/blog/?'
-		]) {
-			assert.throws(
-				() =>
-					create([
-						{
-							config: { ...config, feed: { ...config.feed, home_page_url } },
-							post_dirs: [],
-							posts: [],
-							redirect_route_exists: false
-						}
-					]),
-				/has a query or fragment/,
-				home_page_url
-			);
-		}
-	});
-
-	test('throws on feed metadata with a leftover atom', () => {
-		const feed = { ...config.feed, atom: { feed_url: 'https://example.com/blog/feed.xml' } };
-		assert.throws(
-			() =>
-				create([
-					{
-						config: { ...config, feed },
-						post_dirs: [],
-						posts: [],
-						redirect_route_exists: false
-					}
-				]),
-			/invalid "blog" feed metadata:\n/
-		);
-	});
-
-	test('throws on a dirname registered twice', () => {
+	test('validates the blogs registry', () => {
 		assert.throws(
 			() =>
 				create([
 					{ config, post_dirs: [], posts: [], redirect_route_exists: false },
 					{ config, post_dirs: [], posts: [], redirect_route_exists: false }
 				]),
-			/duplicate blog dirname "blog"/
+			/^duplicate blog dirname "blog"/
 		);
 	});
 

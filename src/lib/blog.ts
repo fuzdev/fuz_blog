@@ -1,4 +1,3 @@
-import type { Component } from 'svelte';
 import type { Flavored } from '@fuzdev/fuz_schema/schema.ts';
 import { strip_end } from '@fuzdev/fuz_util/string.ts';
 import { create_context } from '@fuzdev/fuz_ui/context_helpers.ts';
@@ -7,7 +6,7 @@ import * as s from '@fuzdev/fuz_schema/schema.ts';
 import { meta } from '@fuzdev/fuz_schema/meta.ts';
 
 import { FeedDatetime, Feed, FeedUrl } from './feed.ts';
-import { BLOG_POST_ID_SOURCE } from './blog_post_id.ts';
+import { BLOG_POST_ID_SOURCE, is_blog_post_id_param } from './blog_post_id.ts';
 
 // the `Feed` entries a blog author configures, shared by `BlogFeedMetadata` and `BlogFeed` -
 // without `items`, from the posts, and `atom`, derived from `home_page_url`
@@ -27,7 +26,11 @@ export type BlogFeedMetadata = s.Infer<typeof BlogFeedMetadata>;
  * is `<home_page_url>/feed.xml` (a trailing slash on `home_page_url` is ignored).
  */
 export const to_blog_feed_url = (home_page_url: string): string =>
-	strip_end(home_page_url, '/') + '/feed.xml';
+	join_blog_url(home_page_url, 'feed.xml');
+
+// appends a path segment to a blog's `home_page_url`, ignoring its trailing slash
+const join_blog_url = (home_page_url: string, segment: string): string =>
+	strip_end(home_page_url, '/') + '/' + segment;
 
 // Shared metadata fields, reused by the loose author input (`BlogPostMetadata`)
 // and the strict feed entry (`BlogFeedItem`).
@@ -105,11 +108,6 @@ export interface BlogPostScaffoldOptions {
  */
 export interface BlogsModule {
 	blogs: Array<BlogConfig>;
-}
-
-export interface BlogPostModule {
-	post: BlogPostMetadata;
-	default: Component<any>; // TODO types
 }
 
 /**
@@ -196,6 +194,57 @@ export const resolve_blog_post_dirs = (
 };
 
 /**
+ * Finds a blog's post by a query naming it: a bare id like `1` matches by id,
+ * an `<id>-<slug>` directory name like `1-hello-world` matches that directory
+ * exactly, and anything else matching `BLOG_POST_SLUG_PATTERN` matches by slug.
+ * A directory name that matches no post falls back to matching by slug, since
+ * a slug may itself look like `<id>-<slug>` (`5-1-x` has the slug `1-x`).
+ * An existing directory name wins over an equal slug of another post.
+ * Slugs are not unique across ids, so a slug matching more than one post throws -
+ * query by id or directory name instead.
+ * @param post_dirs - the blog's posts, from `resolve_blog_post_dirs`
+ * @param query - the post's id, directory name, or slug
+ * @param blog_dirname - the blog's `dirname`, for error messages
+ * @throws Error when `query` is none of the three forms or matches no post or
+ * more than one
+ */
+export const find_blog_post_dir = (
+	post_dirs: Array<BlogPostDir>,
+	query: string,
+	blog_dirname: string
+): BlogPostDir => {
+	if (is_blog_post_id_param(query)) {
+		const blog_post_id = Number(query);
+		const found = post_dirs.find((d) => d.blog_post_id === blog_post_id);
+		if (!found) throw new Error(`no ${blog_dirname} post with id ${blog_post_id}`);
+		return found;
+	}
+	const parsed = parse_blog_post_dirname(query);
+	if (parsed) {
+		const found = post_dirs.find(
+			(d) => d.blog_post_id === parsed.blog_post_id && d.slug === parsed.slug
+		);
+		if (found) return found;
+	} else if (!BLOG_POST_SLUG_PATTERN.test(query)) {
+		throw new Error(
+			`invalid post ${JSON.stringify(query)} - expected an id like \`1\`, a directory name like \`1-hello-world\`, or a slug like \`hello-world\``
+		);
+	}
+	const matches = post_dirs.filter((d) => d.slug === query);
+	if (matches.length === 0) {
+		throw new Error(
+			`no ${blog_dirname} post with ${parsed ? 'directory name or ' : ''}slug ${query}`
+		);
+	}
+	if (matches.length > 1) {
+		throw new Error(
+			`slug ${query} matches more than one ${blog_dirname} post - ${matches.map(to_blog_post_dirname).join(', ')} - pass the id or directory name instead`
+		);
+	}
+	return matches[0]!;
+};
+
+/**
  * The id for a new post, one more than the highest existing id, so a deleted
  * post's id is not reused unless it was the highest.
  */
@@ -241,20 +290,41 @@ export type BlogFeed = s.Infer<typeof BlogFeed>;
 
 export const blog_feed_context = create_context<BlogFeed>();
 
+// the keys of `BlogConfig`, so a misspelled or removed option fails instead of being ignored
+const BLOG_CONFIG_KEYS: ReadonlySet<string> = new Set(
+	Object.keys({ dirname: true, feed: true, scaffold: true } satisfies Record<
+		keyof BlogConfig,
+		true
+	>)
+);
+
 /**
  * Validates the blogs registry, called by `load_blogs_module` so `gro gen` and the
- * post tasks check it before touching any post file: each
- * `dirname` is well-formed and unique, each `feed` is a strict `BlogFeedMetadata`
+ * post tasks check it before touching any post file: each config is an object with
+ * only `BlogConfig` keys and a function or omitted `scaffold`, each
+ * `dirname` is a well-formed and unique string, each `feed` is a strict `BlogFeedMetadata`
  * (so a leftover `atom`, now derived, fails), and each `home_page_url` has no query
  * or fragment and a pathname (trailing slash ignored) ending with `/<dirname>`,
  * optionally after a deploy base path (e.g. `https://user.github.io/repo/blog`).
  * Post `url`s and the feed URL derive from `home_page_url` while the posts are
  * routes under `src/routes/<dirname>`, so a mismatch would publish broken links.
+ * @param blogs - the registry's `blogs` export, unvalidated
  * @throws Error naming the first invalid blog
  */
-export const validate_blog_configs = (blogs: Array<BlogConfig>): void => {
+export const validate_blog_configs: (
+	blogs: Array<unknown>
+) => asserts blogs is Array<BlogConfig> = (blogs) => {
 	const dirnames: Set<string> = new Set();
-	for (const { dirname, feed } of blogs) {
+	for (const [i, config] of blogs.entries()) {
+		if (typeof config !== 'object' || config === null || Array.isArray(config)) {
+			throw new Error(`invalid blog config at index ${i} - expected an object`);
+		}
+		const { dirname, feed, scaffold } = config as Record<string, unknown>;
+		if (typeof dirname !== 'string') {
+			throw new Error(
+				`invalid blog dirname at index ${i} - expected a string, received ${dirname === null ? 'null' : typeof dirname}`
+			);
+		}
 		const segments = dirname.split('/');
 		// these change what `URL` or the router sees - `\\` becomes `/`, `?` and `#` start a query or
 		// fragment, `%` reads as an escape when routes match, `URL` trims trailing spaces and drops
@@ -281,6 +351,20 @@ export const validate_blog_configs = (blogs: Array<BlogConfig>): void => {
 		}
 		dirnames.add(dirname);
 
+		const unknown_keys = Object.keys(config).filter((key) => !BLOG_CONFIG_KEYS.has(key));
+		if (unknown_keys.length > 0) {
+			throw new Error(
+				`unknown ${JSON.stringify(dirname)} blog config ${unknown_keys.length === 1 ? 'key' : 'keys'} ` +
+					`${unknown_keys.map((key) => JSON.stringify(key)).join(', ')} - expected only ` +
+					[...BLOG_CONFIG_KEYS].map((key) => JSON.stringify(key)).join(', ')
+			);
+		}
+		if (scaffold !== undefined && typeof scaffold !== 'function') {
+			throw new Error(
+				`invalid ${JSON.stringify(dirname)} scaffold - expected a function or undefined, received ${typeof scaffold}`
+			);
+		}
+
 		const parsed = s.parse(BlogFeedMetadata, feed);
 		if (!parsed.ok) {
 			throw new Error(
@@ -295,8 +379,10 @@ export const validate_blog_configs = (blogs: Array<BlogConfig>): void => {
 				`${JSON.stringify(dirname)} home_page_url ${JSON.stringify(home_page_url)} has a query or fragment - post and feed URLs append to it`
 			);
 		}
-		const pathname = strip_end(new URL(home_page_url).pathname, '/');
-		// percent-encoded like `pathname`, so a dirname with non-ASCII characters compares equal
+		// both percent-encoded, so a dirname with non-ASCII characters compares equal - `URL` encodes
+		// the dirname (which has no `%`) with uppercase hex but keeps the home_page_url's escapes as
+		// written, so only that side needs its hex case normalized
+		const pathname = to_uppercase_escapes(strip_end(new URL(home_page_url).pathname, '/'));
 		const dirname_pathname = new URL('https://localhost/' + dirname).pathname;
 		if (!pathname.endsWith(dirname_pathname)) {
 			throw new Error(
@@ -306,6 +392,10 @@ export const validate_blog_configs = (blogs: Array<BlogConfig>): void => {
 		}
 	}
 };
+
+// uppercases the hex digits of percent escapes, `%c3%a9` to `%C3%A9`
+const to_uppercase_escapes = (pathname: string): string =>
+	pathname.replace(/%[0-9a-f]{2}/gi, (escape) => escape.toUpperCase());
 
 /**
  * Resolves a `BlogConfig` from the registry by its `dirname`,
@@ -343,14 +433,13 @@ export const resolve_blog_feed_item = (
 	post: BlogPostMetadata
 ): BlogFeedItem => {
 	const { blog_post_id, slug } = post_dir;
-	const base = strip_end(home_page_url, '/');
 	const post_dirname = to_blog_post_dirname(post_dir);
 	// copy fields explicitly - this is the strip seam; spreading `...post` would
 	// leak a consumer's extra metadata into the typed feed (see the TSDoc above)
 	return {
 		// the bare id resolves through the generated redirect route
-		id: base + '/' + blog_post_id,
-		url: base + '/' + post_dirname,
+		id: join_blog_url(home_page_url, String(blog_post_id)),
+		url: join_blog_url(home_page_url, post_dirname),
 		// the on-disk route, not `new URL(url).pathname` - that includes any `paths.base`,
 		// which `resolve` adds again
 		pathname: '/' + dirname + '/' + post_dirname,

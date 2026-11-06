@@ -4,7 +4,12 @@
 
 > blog software from scratch with SvelteKit
 
-[**blog.fuz.dev**](https://blog.fuz.dev/)
+fuz_blog is a SvelteKit blog template and a library for adding blogs to existing projects.
+Posts are SvelteKit routes that export their own metadata, and `gro gen` validates them
+into an Atom feed and a typed feed module for the components to render.
+It's statically generated, with no database or admin interface.
+
+Docs are at [**blog.fuz.dev**](https://blog.fuz.dev/docs).
 
 [npm](https://www.npmjs.com/package/@fuzdev/fuz_blog):
 

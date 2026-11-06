@@ -1,4 +1,5 @@
 import { format_file } from '@fuzdev/gro/format_file.ts';
+import { package_json_load } from '@fuzdev/gro/package_json.ts';
 import { slugify } from '@fuzdev/fuz_util/path.ts';
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -10,6 +11,7 @@ import {
 	BLOG_POST_SLUG_PATTERN,
 	BlogFeed,
 	BlogPostMetadata,
+	find_blog_post_dir,
 	resolve_blog_feed_item,
 	resolve_blog_post_dirs,
 	to_blog_feed_url,
@@ -19,14 +21,14 @@ import {
 	type BlogConfig,
 	type BlogPostDir,
 	type BlogPostId,
-	type BlogPostModule,
 	type BlogPostScaffoldOptions,
 	type BlogsModule
 } from './blog.ts';
 
-// Node-only helpers for the `gro task src/lib/post.task.ts`/`gro gen` build tooling. The pure blog
-// logic (`resolve_blog_config`, `resolve_blog_feed_item`) lives in `blog.ts` so
-// it stays free of node and gro imports.
+// Build helpers for `gro gen` and the post tasks. Most touch the filesystem or import
+// gro, while `create_blog_gen_outputs` is pure and lives here beside its gen inputs.
+// The pure logic the components share (`resolve_blog_config`, `resolve_blog_feed_item`,
+// `validate_blog_configs`) lives in `blog.ts`, free of node and gro imports.
 
 /**
  * Loads the consumer's `src/routes/blogs.ts` registry and validates it with
@@ -39,14 +41,21 @@ export const load_blogs_module = async (dir: string): Promise<BlogsModule> => {
 			`expected a blogs registry at ${path} - export \`blogs: Array<BlogConfig>\` from it`
 		);
 	}
-	const mod = (await import(path)) as BlogsModule; // TODO schema parse
-	if (!Array.isArray(mod.blogs) || mod.blogs.length === 0) {
+	const { blogs } = (await import(path)) as { blogs?: unknown };
+	if (!Array.isArray(blogs) || blogs.length === 0) {
 		throw new Error(`expected ${path} to export a non-empty \`blogs\` array`);
 	}
 	// before any post path is built from a `dirname`
-	validate_blog_configs(mod.blogs);
-	return mod;
+	validate_blog_configs(blogs);
+	return { blogs };
 };
+
+/**
+ * Loads the import specifier for fuz_blog modules in the project at `dir` -
+ * `#lib` inside fuz_blog itself, `@fuzdev/fuz_blog` in consumers.
+ */
+export const load_fuz_blog_import_path = async (dir: string): Promise<string> =>
+	(await package_json_load(dir)).name === '@fuzdev/fuz_blog' ? '#lib' : '@fuzdev/fuz_blog';
 
 /**
  * The default post scaffold for `gro task src/lib/post.task.ts`.
@@ -107,11 +116,23 @@ export const collect_blog_post_dirs = async (
 	return post_dirs;
 };
 
-export const load_blog_post_modules = (
+/**
+ * Imports each post's `+page.svelte` and returns its `post` export, unvalidated -
+ * `create_blog_gen_outputs` parses them as `BlogPostMetadata`.
+ * @param blog_dir - absolute path to the blog's route directory
+ * @param post_dirs - the blog's posts, from `collect_blog_post_dirs`
+ * @returns each post's `post` export, in `post_dirs` order
+ */
+export const load_blog_posts = (
 	blog_dir: string,
 	post_dirs: Array<BlogPostDir>
-): Promise<Array<BlogPostModule>> =>
-	Promise.all(post_dirs.map((post_dir) => import(to_blog_post_path(blog_dir, post_dir))));
+): Promise<Array<unknown>> =>
+	Promise.all(
+		post_dirs.map(
+			async (post_dir) =>
+				((await import(to_blog_post_path(blog_dir, post_dir))) as { post?: unknown }).post
+		)
+	);
 
 export const to_blog_post_path = (blog_dir: string, post_dir: BlogPostDir): string =>
 	join(blog_dir, to_blog_post_dirname(post_dir), '+page.svelte');
@@ -168,7 +189,7 @@ export const create_blog_post = async (
 ): Promise<CreatedBlogPost> => {
 	const { dir, config, title, date, fuz_blog_import_path, routes_path = 'src/routes' } = options;
 	const slug = options.slug || to_blog_post_slug(title);
-	if (!options.slug && !slug) {
+	if (!slug) {
 		throw new Error(
 			`cannot derive a slug from the title ${JSON.stringify(title)} - pass one explicitly (\`--slug\` in \`post.task.ts\`)`
 		);
@@ -195,8 +216,11 @@ export interface UpdateBlogPostOptions {
 	dir: string;
 	/** The target blog, e.g. from `resolve_blog_config`. */
 	config: BlogConfig;
-	/** The id of the post to update. */
-	blog_post_id: BlogPostId;
+	/**
+	 * The post to update: its id, its `<id>-<slug>` directory name, or its slug
+	 * (see `find_blog_post_dir`).
+	 */
+	query: string;
 	/** ISO date written to `date_modified`. */
 	date: string;
 	/** @default 'src/routes' */
@@ -207,27 +231,28 @@ export interface UpdatedBlogPost {
 	blog_post_id: BlogPostId;
 	/** Absolute path to the updated `+page.svelte`. */
 	path: string;
+	/** The post's slug, from its directory name. */
+	slug: string;
 }
 
 /**
  * Rewrites the `date_modified` of an existing post file for `config`, returning
- * its id and path. Does not run `gen` - callers invoke that afterward (see
+ * its id, path, and slug. Does not run `gen` - callers invoke that afterward (see
  * `update_post.task.ts`).
- * @throws Error when no post has the id, `date` is before the post's `date_published`
+ * @throws Error when `query` finds no single post (see `find_blog_post_dir`), `date` is before the post's `date_published`
  * (when the file has exactly one quoted value to read), or the file has other than
  * exactly one quoted `date_modified` value to replace
  */
 export const update_blog_post = async (
 	options: UpdateBlogPostOptions
 ): Promise<UpdatedBlogPost> => {
-	const { dir, config, blog_post_id, date, routes_path = 'src/routes' } = options;
+	const { dir, config, query, date, routes_path = 'src/routes' } = options;
 	const blog_dir = join(dir, routes_path, config.dirname);
-	const post_dir = (await collect_blog_post_dirs(blog_dir, config.dirname)).find(
-		(d) => d.blog_post_id === blog_post_id
+	const post_dir = find_blog_post_dir(
+		await collect_blog_post_dirs(blog_dir, config.dirname),
+		query,
+		config.dirname
 	);
-	if (!post_dir) {
-		throw new Error(`no ${config.dirname} post with id ${blog_post_id} in ${blog_dir}`);
-	}
 	const path = to_blog_post_path(blog_dir, post_dir);
 	const content = await readFile(path, 'utf8');
 	// best effort: gen enforces the order on the loaded metadata, this only fails earlier
@@ -250,7 +275,7 @@ export const update_blog_post = async (
 	}
 	const updated_content = content.replace(pattern, `date_modified: '${date}'`);
 	await writeFile(path, updated_content, 'utf8');
-	return { blog_post_id, path };
+	return { blog_post_id: post_dir.blog_post_id, path, slug: post_dir.slug };
 };
 
 /**

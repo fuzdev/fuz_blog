@@ -1,13 +1,13 @@
 import type { Gen } from '@fuzdev/gro/gen.ts';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { package_json_load } from '@fuzdev/gro/package_json.ts';
 
 import {
 	collect_blog_post_dirs,
 	create_blog_gen_outputs,
-	load_blog_post_modules,
+	load_blog_posts,
 	load_blogs_module,
+	load_fuz_blog_import_path,
 	to_blog_post_redirect_route_path,
 	type BlogGenInput
 } from './blog_helpers.ts';
@@ -20,11 +20,8 @@ import {
  * @nodocs
  */
 export const gen: Gen = async ({ origin_path }) => {
-	const package_json = await package_json_load();
-	const fuz_blog_import_path =
-		package_json.name === '@fuzdev/fuz_blog' ? '#lib' : '@fuzdev/fuz_blog';
-
 	const dir = process.cwd();
+	const fuz_blog_import_path = await load_fuz_blog_import_path(dir);
 	const routes_path = 'src/routes'; // TODO read from SvelteKit config;
 
 	const { blogs } = await load_blogs_module(dir);
@@ -33,11 +30,10 @@ export const gen: Gen = async ({ origin_path }) => {
 		blogs.map(async (config) => {
 			const blog_dir = join(dir, routes_path, config.dirname);
 			const post_dirs = await collect_blog_post_dirs(blog_dir, config.dirname);
-			const modules = await load_blog_post_modules(blog_dir, post_dirs);
 			return {
 				config,
 				post_dirs,
-				posts: modules.map((mod) => mod.post),
+				posts: await load_blog_posts(blog_dir, post_dirs),
 				redirect_route_exists: existsSync(to_blog_post_redirect_route_path(blog_dir))
 			};
 		})

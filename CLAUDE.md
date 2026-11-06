@@ -29,19 +29,24 @@ gro task src/lib/post.task.ts "Title" --blog autoblog                  # target 
 gro task src/lib/post.task.ts "Title" --slug custom-slug               # override the slug derived from the title
 gro task src/lib/update_post.task.ts 1 --date 2024-07-10T16:04:49.688Z # update specific post
 gro task src/lib/update_post.task.ts 1 --blog autoblog                 # update in a specific blog
+gro task src/lib/update_post.task.ts 1-hello-fuz-blog                  # by directory name
+gro task src/lib/update_post.task.ts hello-fuz-blog                    # by slug, if unique
 ```
 
 Arguments use `@fuzdev/fuz_schema` schemas for validation, as do the blog and
 feed schemas. The tasks auto-detect whether they're running in the fuz_blog
-library itself or in a consuming project, adjusting import paths accordingly.
+library itself or in a consuming project, adjusting import paths accordingly
+(`load_fuz_blog_import_path()`).
 
 Blogs are declared in the consumer's `src/routes/blogs.ts`, which exports
 `blogs: Array<BlogConfig>` — one entry per blog with a route `dirname`, feed
 metadata (`BlogFeedMetadata`), and an optional `scaffold` function customizing what
 `gro task src/lib/post.task.ts` generates for that blog. `--blog` defaults to
-the first registered entry. The feed's `home_page_url` is the blog's index
+the first registered entry. `validate_blog_configs()` rejects any other config
+key, a non-function `scaffold`, and a non-string `dirname`. The feed's `home_page_url` is the blog's index
 page: its pathname must end with `/<dirname>`, after any deploy base path
-(`https://user.github.io/repo/blog` for `dirname: 'blog'`), because post URLs
+(`https://user.github.io/repo/blog` for `dirname: 'blog'`; percent escapes
+compare case-insensitively, so `caf%c3%a9` matches `dirname: 'café'`), because post URLs
 derive from it while the posts are routes under `src/routes/<dirname>`. The
 feed's own URL is derived too, `<home_page_url>/feed.xml` via
 `to_blog_feed_url()`, matching where gen writes `static/<dirname>/feed.xml` —
@@ -92,7 +97,7 @@ extra flags (e.g. a `--model` field), write a small task that parses its own
 fuz_blog is a **blog template and library**:
 
 - Blog post types and feed generation
-- Atom/RSS feed publishing
+- Atom feed publishing (no JSON Feed or RSS yet)
 - Reusable Svelte components for other blog projects
 
 ### What fuz_blog does NOT include
@@ -109,7 +114,7 @@ fuz_blog is a **blog template and library**:
 ```
 src/
 ├── lib/                    # exportable library code
-│   ├── blog.ts             # types, blog_feed_context, post dirname parsing, resolve_blog_feed_item
+│   ├── blog.ts             # types, blog_feed_context, registry validation, post dirname parsing and lookup, resolve_blog_feed_item
 │   ├── blog_helpers.ts     # node build helpers: load_blogs_module, collect_blog_post_dirs, create_blog_post
 │   ├── blog_post_id.ts     # post id grammar + the blog_post_id param matcher
 │   ├── blog_post_redirect.ts # entries + load for the generated redirect route
@@ -120,16 +125,17 @@ src/
 │   ├── BlogPostList.svelte # prop-driven post listing (takes a `feed`)
 │   ├── BlogPostHeader.svelte
 │   ├── FeedItemDate.svelte # date formatting component
-│   ├── HashLink.svelte     # anchor link with hover icon
 │   ├── post.task.ts        # post scaffolding task
 │   └── update_post.task.ts # date_modified update task
-├── test/                   # test files (not co-located)
+├── test/                   # test files (not co-located), shared fixtures in blog_test_helpers.ts
+├── params.ts               # registers the blog_post_id param matcher
 └── routes/
     ├── blogs.ts            # blogs registry (Array<BlogConfig>)
     ├── blog/
     │   ├── feed.ts         # generated BlogFeed object
     │   ├── +layout.svelte  # sets blog_feed_context for this blog's subtree
     │   ├── +page.svelte    # blog listing page (uses BlogPostList)
+    │   ├── BlogPostFooter.svelte # the template's post footer, rendered in its posts
     │   ├── 1-hello-fuz-blog/ # a post, one `<id>-<slug>` directory each
     │   └── [post=blog_post_id]/+page.ts # generated redirect from `/blog/<id>` to the post
     └── docs/               # documentation pages
@@ -207,13 +213,16 @@ types and data:
 - `blog.ts` - `BlogPostMetadata`, `BlogFeedItem`, `BlogPostId`, `BlogPostDir`,
   `BlogFeedMetadata`, `BlogFeed`, `BlogConfig`, `blog_feed_context`, and the pure
   `to_blog_feed_url()` / `validate_blog_configs()` / `parse_blog_post_dirname()` /
-  `resolve_blog_post_dirs()` / `resolve_blog_config()` / `resolve_blog_feed_item()`
+  `resolve_blog_post_dirs()` / `find_blog_post_dir()` / `resolve_blog_config()` /
+  `resolve_blog_feed_item()`
 - `blog_post_id.ts` - `BLOG_POST_ID_SOURCE`, `is_blog_post_id_param()`, and the
   `blog_post_id_param` matcher, dependency-free since SvelteKit loads matchers
   eagerly on the client
 - `blog_post_redirect.ts` - `find_blog_feed_item_by_param()`,
   `to_blog_post_redirect_entries()`, and `blog_post_redirect()` for the
-  generated redirect route (imports `$app/paths`, so SvelteKit-only)
+  generated redirect route, and `resolve_blog_post_pathname()`, a post
+  `pathname` resolved under the base path for links (imports `$app/paths`, so
+  SvelteKit-only)
 - `feed.ts` - `Feed`, `FeedItem` fuz_schema schemas (JSON Feed 1.1 field
   names, not a conformant JSON Feed), `FeedDatetime` (a UTC ISO datetime
   string), `FeedUrl`, `compare_feed_items()` / `sort_feed_items()` (newest
@@ -221,10 +230,11 @@ types and data:
   `create_atom_feed()` (entries in that order; feed `<updated>` is the latest
   item date, or the Unix epoch for a feed with no items, keeping gen output
   deterministic)
-- `blog_helpers.ts` - node build helpers: `load_blogs_module()`,
-  `collect_blog_post_dirs()`, `load_blog_post_modules()`, `create_blog_post()`,
+- `blog_helpers.ts` - build helpers: `load_blogs_module()`,
+  `load_fuz_blog_import_path()`, `collect_blog_post_dirs()`, `load_blog_posts()`
+  (each post's unvalidated `post` export), `create_blog_post()`,
   `update_blog_post()`, `scaffold_blog_post()`, `to_blog_post_slug()`,
-  `create_blog_gen_outputs()`, `to_blog_post_redirect_route_path()`,
+  `create_blog_gen_outputs()` (pure), `to_blog_post_redirect_route_path()`,
   `BLOG_POST_REDIRECT_ROUTE_DIRNAME`
 - `util.ts` - `format_date()`, the UTC calendar date like `Jul 10, 2024`, so
   prerendered dates don't depend on the build machine's timezone
@@ -237,19 +247,21 @@ components:
   route; emits a canonical link only on the post's own route
 - `BlogPostList.svelte` - prop-driven post listing rendered from a `feed`,
   ordered like the Atom feed by `sort_feed_items`, numbered as a reversed `<ol>`
-  (a chronological rank, not the post id), linking the feed at its `feed_url`
-  pathname
+  (a chronological rank, not the post id) or a paragraph when there are no
+  posts, linking the feed at its `feed_url` pathname
 - `BlogPostHeader.svelte` - title and metadata display
-- `FeedItemDate.svelte` - formatted date with "updated" indicator
-- `HashLink.svelte` - section anchor with hover-visible link icon
+- `FeedItemDate.svelte` - formatted publish date, plus "updated" when the
+  modified date formats to a different day; takes a feed item or post metadata
 
 tasks:
 
 - `post.task.ts` - `gro task src/lib/post.task.ts "Title"` scaffolds a new post
   at `<id>-<slug>/`, the slug from the title or `--slug`
-- `update_post.task.ts` - `gro task src/lib/update_post.task.ts [id]` updates `date_modified`,
-  failing unless exactly one `date_modified` value matches, or when the date is
-  before the post's `date_published` (when the file has exactly one quoted value)
+- `update_post.task.ts` - `gro task src/lib/update_post.task.ts <post>` updates `date_modified`
+  of the post named by its id, `<id>-<slug>` directory name, or slug (unique
+  within the blog; see `find_blog_post_dir()`), failing unless exactly one
+  `date_modified` value matches, or when the date is before the post's
+  `date_published` (when the file has exactly one quoted value)
 
 ### Svelte 5 patterns
 

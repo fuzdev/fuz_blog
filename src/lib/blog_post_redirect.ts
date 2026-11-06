@@ -15,6 +15,14 @@ import { is_blog_post_id_param } from './blog_post_id.ts';
  */
 
 /**
+ * Resolves a post's app-relative `pathname` (a `BlogFeedItem` field) to an href
+ * under the deploy base path, with kit's `resolve`.
+ */
+export const resolve_blog_post_pathname = (pathname: string): string =>
+	// every post `pathname` is a literal app route, and kit's `Path` drops the leading `/`
+	resolve(pathname.slice(1) as Path);
+
+/**
  * Finds a feed's item by the param of the generated redirect route, which must
  * be a bare post id like `1` - `01` and `1.0` find nothing.
  */
@@ -46,6 +54,5 @@ export const to_blog_post_redirect_entries = (feed: BlogFeed): Array<{ post: str
 export const blog_post_redirect = (feed: BlogFeed, param: string): never => {
 	const item = find_blog_feed_item_by_param(feed, param);
 	if (!item) error(404, 'post not found');
-	// every post `pathname` is a literal app route, and kit's `Path` drops the leading `/`
-	redirect(308, resolve(item.pathname.slice(1) as Path));
+	redirect(308, resolve_blog_post_pathname(item.pathname));
 };

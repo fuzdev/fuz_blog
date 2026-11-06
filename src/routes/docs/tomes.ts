@@ -8,7 +8,13 @@ export const tomes: Array<Tome> = [
 		category: 'guide',
 		Component: IntroductionPage,
 		related_tomes: ['api'],
-		related_modules: ['blog.ts', 'feed.ts', 'blog_helpers.ts'],
+		related_modules: [
+			'blog.ts',
+			'feed.ts',
+			'blog_helpers.ts',
+			'blog_post_id.ts',
+			'blog_post_redirect.ts'
+		],
 		related_declarations: ['BlogConfig', 'BlogFeed', 'blog_feed_context', 'create_blog_post']
 	},
 	{

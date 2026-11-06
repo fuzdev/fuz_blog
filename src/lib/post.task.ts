@@ -1,10 +1,9 @@
 import { TaskError, type Task } from '@fuzdev/gro';
-import { package_json_load } from '@fuzdev/gro/package_json.ts';
 import * as s from '@fuzdev/fuz_schema/schema.ts';
 import { to_error_message } from '@fuzdev/fuz_util/error.ts';
 import { meta } from '@fuzdev/fuz_schema/meta.ts';
 
-import { create_blog_post, load_blogs_module } from './blog_helpers.ts';
+import { create_blog_post, load_blogs_module, load_fuz_blog_import_path } from './blog_helpers.ts';
 import { resolve_blog_config } from './blog.ts';
 import { FeedDatetime } from './feed.ts';
 
@@ -57,9 +56,7 @@ export const task: Task<Args> = {
 		const { blogs } = await load_blogs_module(dir);
 		const config = resolve_blog_config(blogs, blog_dirname);
 
-		const package_json = await package_json_load();
-		const fuz_blog_import_path =
-			package_json.name === '@fuzdev/fuz_blog' ? '#lib' : '@fuzdev/fuz_blog';
+		const fuz_blog_import_path = await load_fuz_blog_import_path(dir);
 
 		// invalid slugs and post directories are user errors, so report them without a stack
 		const { blog_post_id, path, slug } = await create_blog_post({

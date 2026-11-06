@@ -1,9 +1,7 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
-	import type { Path } from '$app/types';
-
 	import FeedItemDate from './FeedItemDate.svelte';
 	import type { BlogFeed } from './blog.ts';
+	import { resolve_blog_post_pathname } from './blog_post_redirect.ts';
 	import { sort_feed_items } from './feed.ts';
 
 	const { feed }: { feed: BlogFeed } = $props();
@@ -15,18 +13,19 @@
 </script>
 
 <section class="blog">
-	<!-- `reversed` counts down to the oldest post at 1, a chronological rank, not the post id -->
-	<ol class="panel" reversed>
-		{#each items as item (item.id)}
-			<li class="blog-card">
-				<!-- every post `pathname` is a literal app route, and kit's `Path` drops the leading `/` -->
-				<a href={resolve(item.pathname.slice(1) as Path)}>{item.title}</a>
-				<div class="date"><FeedItemDate {item} /></div>
-			</li>
-		{:else}
-			no blog posts yet!
-		{/each}
-	</ol>
+	{#if items.length}
+		<!-- `reversed` counts down to the oldest post at 1, a chronological rank, not the post id -->
+		<ol class="panel" reversed>
+			{#each items as item (item.id)}
+				<li class="blog-card">
+					<a href={resolve_blog_post_pathname(item.pathname)}>{item.title}</a>
+					<div class="date"><FeedItemDate {item} /></div>
+				</li>
+			{/each}
+		</ol>
+	{:else}
+		<p>no blog posts yet!</p>
+	{/if}
 	<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 	<a class="feed-link chip" href={feed_pathname} download>Atom feed</a>
 </section>
