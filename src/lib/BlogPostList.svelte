@@ -4,15 +4,18 @@
 
 	import FeedItemDate from './FeedItemDate.svelte';
 	import type { BlogFeed } from './blog.ts';
+	import { sort_feed_items } from './feed.ts';
 
 	const { feed }: { feed: BlogFeed } = $props();
 
-	// newest first
-	const items = $derived(feed.items.slice().reverse());
+	// newest first, the order of the Atom feed
+	const items = $derived(sort_feed_items(feed.items));
+	// the absolute `feed_url` includes any deploy base path, so its pathname is the link
 	const feed_pathname = $derived(new URL(feed.atom.feed_url).pathname);
 </script>
 
 <section class="blog">
+	<!-- `reversed` counts down to the oldest post at 1, a chronological rank, not the post id -->
 	<ol class="panel" reversed>
 		{#each items as item (item.id)}
 			<li class="blog-card">

@@ -14,8 +14,7 @@
 	import pkg_json from 'virtual:pkg.json';
 
 	import Settings from './Settings.svelte';
-	import { blog_feed_context } from '#lib/blog.ts';
-	import { feed } from './blog/feed.ts';
+	import { blogs } from './blogs.ts';
 
 	const {
 		children
@@ -25,15 +24,21 @@
 
 	site_context.set(new SiteState({ icon: logo_fuz_blog, pkg_json }));
 
-	blog_feed_context.set(feed);
-
 	let show_settings = $state.raw(false);
 </script>
 
 <svelte:head>
 	<title>fuz_blog</title>
 	<!-- TODO add JSONFeed -->
-	<link rel="alternate" type="application/atom+xml" title="Atom" href={feed.atom.feed_url} />
+	<!-- site-wide feed autodiscovery, each blog's feed context is set in its own layout -->
+	{#each blogs as blog (blog.dirname)}
+		<link
+			rel="alternate"
+			type="application/atom+xml"
+			title={blog.feed.title}
+			href={blog.feed.atom.feed_url}
+		/>
+	{/each}
 </svelte:head>
 
 <svelte:body

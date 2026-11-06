@@ -77,7 +77,6 @@ extra flags (e.g. a `--model` field), write a small task that parses its own
 
 - Svelte 5 - component framework
 - SvelteKit - application framework
-- date-fns - date formatting
 - fuz_schema (@fuzdev/fuz_schema) - blog, feed, and task args schemas
 - fuz_css (@fuzdev/fuz_css) - semantic-first CSS framework and design system
 - fuz_ui (@fuzdev/fuz_ui) - UI components, docs system
@@ -201,13 +200,18 @@ types and data:
   generated redirect route (imports `$app/paths`, so SvelteKit-only)
 - `feed.ts` - `Feed`, `FeedItem` fuz_schema schemas (JSON Feed 1.1 field
   names, not a conformant JSON Feed), `FeedDatetime` (a UTC ISO datetime
-  string), `FeedUrl`, `create_atom_feed()`
+  string), `FeedUrl`, `compare_feed_items()` / `sort_feed_items()` (newest
+  first by `date_published`, ties by `id` descending with numeric collation),
+  `create_atom_feed()` (entries in that order; feed `<updated>` is the latest
+  item date, or the Unix epoch for a feed with no items, keeping gen output
+  deterministic)
 - `blog_helpers.ts` - node build helpers: `load_blogs_module()`,
   `collect_blog_post_dirs()`, `load_blog_post_modules()`, `create_blog_post()`,
   `update_blog_post()`, `scaffold_blog_post()`, `to_blog_post_slug()`,
   `create_blog_gen_outputs()`, `to_blog_post_redirect_route_path()`,
   `BLOG_POST_REDIRECT_ROUTE_DIRNAME`
-- `util.ts` - `format_date()` for consistent date formatting
+- `util.ts` - `format_date()`, the UTC calendar date like `Jul 10, 2024`, so
+  prerendered dates don't depend on the build machine's timezone
 
 components:
 
@@ -215,7 +219,10 @@ components:
   `comments`); finds its feed item by matching the current route id to an
   item's `pathname`, or takes an explicit `item` to render a post off its own
   route; emits a canonical link only on the post's own route
-- `BlogPostList.svelte` - prop-driven post listing rendered from a `feed`
+- `BlogPostList.svelte` - prop-driven post listing rendered from a `feed`,
+  ordered like the Atom feed by `sort_feed_items`, numbered as a reversed `<ol>`
+  (a chronological rank, not the post id), linking the feed at its `feed_url`
+  pathname
 - `BlogPostHeader.svelte` - title and metadata display
 - `FeedItemDate.svelte` - formatted date with "updated" indicator
 - `HashLink.svelte` - section anchor with hover-visible link icon
@@ -236,11 +243,13 @@ Components use Svelte 5 runes API with optional `Snippet` props (`meta`,
 
 Uses the standardized context pattern from fuz_ui:
 
-- `blog_feed_context` - provides `BlogFeed` data throughout the app
+- `blog_feed_context` - provides a blog's `BlogFeed` to its subtree
 
-Set `blog_feed_context` with the generated feed in the blog's `+layout.svelte`
-(per blog when there's more than one), or pass the feed/item directly as props
-to `BlogPostList` / `BlogPost`.
+Set `blog_feed_context` with the generated feed in the blog's own
+`src/routes/<dirname>/+layout.svelte`, as the template does, or pass the
+feed/item directly as props to `BlogPostList` / `BlogPost`. The template's root
+`+layout.svelte` only links each registered blog's feed for autodiscovery,
+reading the URLs from `blogs.ts`.
 
 ## Creating a blog post
 
@@ -278,8 +287,8 @@ accessible from the context menu for theme customization.
   structure
 - **Partial test coverage** - `src/test/` covers post directory parsing and
   discovery, the post-item/URL and blog-config logic, the redirect helper, post
-  creation and updating, the schemas, and Atom escaping; the components and the
-  task wrappers are untested
+  creation and updating, the schemas, feed ordering and Atom output, and UTC date
+  formatting; the components and the task wrappers are untested
 
 ## Project standards
 

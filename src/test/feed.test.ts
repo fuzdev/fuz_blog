@@ -1,7 +1,15 @@
 import { assert, describe, test } from 'vitest';
 import * as s from '@fuzdev/fuz_schema/schema.ts';
 
-import { create_atom_feed, FeedDatetime, Feed, FeedUrl } from '#lib/feed.ts';
+import {
+	compare_feed_items,
+	create_atom_feed,
+	FeedDatetime,
+	Feed,
+	type FeedItem,
+	FeedUrl,
+	sort_feed_items
+} from '#lib/feed.ts';
 
 const feed: Feed = {
 	id: 'https://example.com/',
@@ -25,7 +33,139 @@ const feed: Feed = {
 	atom: { feed_url: 'https://example.com/blog/feed.xml' }
 };
 
+const to_item = (n: number, date_published: string, date_modified = date_published): FeedItem => ({
+	id: `https://example.com/blog/${n}`,
+	title: `post ${n}`,
+	url: `https://example.com/blog/${n}-post`,
+	date_published,
+	date_modified,
+	summary: ''
+});
+
+const to_entry_ids = (xml: string): Array<string> =>
+	Array.from(xml.matchAll(/<entry>\s*<id>([^<]+)<\/id>/g), (m) => m[1]!);
+
+// the feed-level element, indented by two spaces where an entry's is indented by four
+const to_feed_updated = (xml: string): string | undefined =>
+	/^ {2}<updated>([^<]+)<\/updated>$/m.exec(xml)?.[1];
+
+describe('compare_feed_items', () => {
+	test('breaks numerically equal ids by code units', () => {
+		const date = '2024-01-01T00:00:00Z';
+		const a = { ...to_item(9, date), id: 'https://example.com/blog/09' };
+		const b = to_item(9, date);
+		assert.notEqual(compare_feed_items(a, b), 0);
+		assert.deepEqual(
+			sort_feed_items([a, b]).map((i) => i.id),
+			sort_feed_items([b, a]).map((i) => i.id)
+		);
+	});
+
+	test('orders by `date_published`, newest first, not by id', () => {
+		const items = [
+			to_item(1, '2024-01-01T00:00:00Z'),
+			to_item(2, '2024-03-01T00:00:00Z'),
+			to_item(3, '2024-02-01T00:00:00Z') // published before 2, e.g. a backdated post
+		];
+		assert.deepEqual(
+			sort_feed_items(items).map((i) => i.title),
+			['post 2', 'post 3', 'post 1']
+		);
+	});
+
+	test('compares instants, not strings, across fractional second lengths', () => {
+		const a = to_item(1, '2024-01-01T00:00:00Z');
+		const b = to_item(2, '2024-01-01T00:00:00.5Z'); // later, though it sorts lower as a string
+		assert.deepEqual(
+			sort_feed_items([a, b]).map((i) => i.title),
+			['post 2', 'post 1']
+		);
+	});
+
+	test('breaks date ties by id descending, numerically', () => {
+		const date = '2024-01-01T00:00:00Z';
+		const items = [to_item(9, date), to_item(10, date), to_item(2, date)];
+		assert.deepEqual(
+			sort_feed_items(items).map((i) => i.title),
+			['post 10', 'post 9', 'post 2']
+		);
+	});
+
+	test('is a consistent comparator', () => {
+		const date = '2024-01-01T00:00:00Z';
+		const a = to_item(1, date);
+		const b = to_item(2, date);
+		assert.equal(compare_feed_items(a, a), 0);
+		assert.equal(compare_feed_items(a, { ...a }), 0);
+		assert.equal(Math.sign(compare_feed_items(a, b)), -Math.sign(compare_feed_items(b, a)));
+		assert.notEqual(compare_feed_items(a, b), 0);
+	});
+
+	test('sorts the same regardless of input order', () => {
+		const items = [
+			to_item(1, '2024-01-01T00:00:00Z'),
+			to_item(2, '2024-01-01T00:00:00Z'),
+			to_item(3, '2023-01-01T00:00:00Z')
+		];
+		const expected = sort_feed_items(items).map((i) => i.id);
+		assert.deepEqual(
+			sort_feed_items(items.slice().reverse()).map((i) => i.id),
+			expected
+		);
+	});
+
+	test('does not mutate its input', () => {
+		const items = [to_item(1, '2024-01-01T00:00:00Z'), to_item(2, '2024-02-01T00:00:00Z')];
+		sort_feed_items(items);
+		assert.deepEqual(
+			items.map((i) => i.title),
+			['post 1', 'post 2']
+		);
+	});
+});
+
 describe('create_atom_feed', () => {
+	test('counts `date_published` when it is later than `date_modified`', () => {
+		const xml = create_atom_feed({
+			...feed,
+			items: [to_item(1, '2024-06-01T00:00:00Z', '2024-01-01T00:00:00Z')]
+		});
+		assert.equal(to_feed_updated(xml), '2024-06-01T00:00:00.000Z');
+	});
+
+	test('writes entries newest first by `date_published`', () => {
+		const xml = create_atom_feed({
+			...feed,
+			items: [
+				to_item(1, '2024-01-01T00:00:00Z'),
+				to_item(2, '2024-03-01T00:00:00Z'),
+				to_item(3, '2024-02-01T00:00:00Z')
+			]
+		});
+		assert.deepEqual(to_entry_ids(xml), [
+			'https://example.com/blog/2',
+			'https://example.com/blog/3',
+			'https://example.com/blog/1'
+		]);
+	});
+
+	test('sets the feed `updated` to the latest item date', () => {
+		const xml = create_atom_feed({
+			...feed,
+			items: [
+				to_item(1, '2024-01-01T00:00:00Z', '2024-06-01T00:00:00Z'),
+				to_item(2, '2024-03-01T00:00:00Z')
+			]
+		});
+		assert.equal(to_feed_updated(xml), '2024-06-01T00:00:00.000Z');
+	});
+
+	test('sets the feed `updated` to the epoch with no items', () => {
+		const xml = create_atom_feed({ ...feed, items: [] });
+		assert.equal(to_feed_updated(xml), '1970-01-01T00:00:00.000Z');
+		assert.deepEqual(to_entry_ids(xml), []);
+	});
+
 	test('escapes special characters in text, attributes, and urls', () => {
 		const xml = create_atom_feed(feed);
 		// no raw special characters leak into the output

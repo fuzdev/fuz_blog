@@ -34,9 +34,6 @@
     "@sveltejs/kit": "^3",
     "svelte": "^5"
   },
-  "dependencies": {
-    "date-fns": "^4"
-  },
   "devDependencies": {
     "@changesets/changelog-git": "^0.2.1",
     "@fuzdev/blake3-wasm": "^0.2.0",

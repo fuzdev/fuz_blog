@@ -99,17 +99,49 @@ const escape_xml = (value: string): string =>
 		.replaceAll('>', '&gt;')
 		.replaceAll('"', '&quot;');
 
-export const create_atom_feed = (data: Feed): string => {
-	const items = data.items
-		.slice()
-		.sort((a, b) => (new Date(a.date_published) > new Date(b.date_published) ? -1 : 1)); // TODO maybe add an option to customize this? maybe by `date_modified`?
+// numeric collation orders ids like `.../blog/9` before `.../blog/10`
+const id_collator = new Intl.Collator('en', { numeric: true });
 
-	const updated: string = items
-		.reduce((latest, item) => {
-			const modified = new Date(item.date_modified || item.date_published);
-			return modified > latest ? modified : latest;
-		}, new Date(0))
-		.toISOString();
+/**
+ * Compares feed items newest first: by `date_published` descending, then by
+ * `id` descending with numeric collation (so `https://example.com/blog/10`
+ * sorts before `https://example.com/blog/9`), then by `id` code units.
+ * For valid `FeedDatetime` values it's a total order, so the sort is deterministic for any input order.
+ * `create_atom_feed` and `BlogPostList` both order items with it.
+ */
+export const compare_feed_items = (a: FeedItem, b: FeedItem): number => {
+	// `Date.parse`, not string comparison: fractional seconds vary in length
+	const by_date = Date.parse(b.date_published) - Date.parse(a.date_published);
+	if (by_date !== 0) return by_date;
+	const by_id = id_collator.compare(b.id, a.id);
+	if (by_id !== 0) return by_id;
+	return a.id < b.id ? 1 : a.id > b.id ? -1 : 0;
+};
+
+/**
+ * Returns a copy of `items` sorted newest first by `compare_feed_items`.
+ */
+export const sort_feed_items = <T extends FeedItem>(items: ReadonlyArray<T>): Array<T> =>
+	items.slice().sort(compare_feed_items);
+
+/**
+ * Renders a feed as Atom XML, entries newest first (see `compare_feed_items`).
+ * The feed-level `<updated>` is the latest `date_modified` or `date_published`
+ * across the items. Atom requires the element, so a feed with no items gets
+ * the Unix epoch, `1970-01-01T00:00:00.000Z` - a fixed value keeps the
+ * generated `feed.xml` deterministic, where the current time would change it
+ * on every `gro gen`. Expects parsed `Feed` data; an unparseable date throws.
+ */
+export const create_atom_feed = (data: Feed): string => {
+	const items = sort_feed_items(data.items);
+
+	const updated = new Date(
+		items.reduce(
+			(latest, item) =>
+				Math.max(latest, Date.parse(item.date_modified), Date.parse(item.date_published)),
+			0
+		)
+	).toISOString();
 
 	return `<?xml version="1.0" encoding="UTF-8" ?>
 
@@ -120,7 +152,7 @@ export const create_atom_feed = (data: Feed): string => {
   <subtitle>${escape_xml(data.description)}</subtitle>
   <link href="${escape_xml(data.home_page_url)}" />
   <link href="${escape_xml(data.atom.feed_url)}" rel="self" type="application/atom+xml" />
-	<updated>${updated}</updated>
+  <updated>${updated}</updated>
   <icon>${escape_xml(data.icon)}</icon>
   <author>
     <name>${escape_xml(data.author.name)}</name>

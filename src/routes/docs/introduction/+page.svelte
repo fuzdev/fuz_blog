@@ -91,33 +91,45 @@ export const params = defineParams({blog_post_id: blog_post_id_param});`}
 		<TomeSection>
 			<TomeSectionHeader text="Publish the feed" />
 			<p>
-				To enable your generated <code>feed.xml</code>, include it as a <code>link</code> in your
-				layout:
+				Set each blog's generated <code>feed</code> as the feed context in its own layout, so
+				<code>BlogPostList</code> and <code>BlogPost</code> in that subtree read the right blog:
 			</p>
 			<Code
-				content={`<!-- src/routes/+layout.svelte -->
+				content={`<!-- src/routes/blog/+layout.svelte -->
 ${'<'}script lang="ts">
 	import {blog_feed_context} from '@fuzdev/fuz_blog/blog.ts';
 
-	import {feed} from './blog/feed.ts';
+	import {feed} from './feed.ts';
+
+	const {children} = $props();
 
 	blog_feed_context.set(feed);
 </script>
 
-<svelte:head>
-	<title>(your title here)</title>
-	<link
-		rel="alternate"
-		type="application/atom+xml"
-		title="Atom"
-		href={feed.atom.feed_url}
-	/>
-</svelte:head>`}
+{@render children()}`}
 			/>
 			<p>
-				With more than one blog, set each blog's <code>feed</code> in its own
-				<code>src/routes/&lt;dirname&gt;/+layout.svelte</code> so its pages read the right context.
+				To enable your generated <code>feed.xml</code>, include it as a <code>link</code> in your
+				root layout so feed readers discover it from any page:
 			</p>
+			<Code
+				content={`<!-- src/routes/+layout.svelte -->
+${'<'}script lang="ts">
+	import {blogs} from './blogs.ts';
+</script>
+
+<svelte:head>
+	<title>(your title here)</title>
+	{#each blogs as blog (blog.dirname)}
+		<link
+			rel="alternate"
+			type="application/atom+xml"
+			title={blog.feed.title}
+			href={blog.feed.atom.feed_url}
+		/>
+	{/each}
+</svelte:head>`}
+			/>
 		</TomeSection>
 		<TomeSection>
 			<TomeSectionHeader text="Create a new post" />
