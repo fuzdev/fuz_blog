@@ -1,1 +1,0 @@
-var e=(e,t)=>{let n={};for(let r in e)t.includes(r)||(n[r]=e[r]);return n},t=Object.freeze({});export{e as n,t};

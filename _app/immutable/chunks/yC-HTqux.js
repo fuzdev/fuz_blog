@@ -1,0 +1,1 @@
+var e=RegExp(`^[1-9]\\d*$`),t=t=>e.test(t)&&Number.isSafeInteger(Number(t)),n=e=>t(e)?e:void 0;export{t as n,n as t};
