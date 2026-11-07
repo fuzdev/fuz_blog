@@ -1,76 +1,88 @@
 # @fuzdev/fuz_blog
 
+## 0.39.0
+
+### Minor Changes
+
+- break: upgrade to fuz_css 0.76 and fuz_ui 0.224 - the `@fuzdev/fuz_css` peer is `>=0.76.0` and the `@fuzdev/fuz_ui` peer `>=0.224.0` ([bda9cbc](https://github.com/fuzdev/fuz_blog/commit/bda9cbc))
+
 ## 0.38.0
 
 ### Minor Changes
 
 - break: `atom` is removed from `BlogConfig.feed` (`BlogFeedMetadata`) - `gro gen` derives the generated feed's `atom.feed_url` from `home_page_url` as `<home_page_url>/feed.xml`, where it writes `static/<dirname>/feed.xml`; new `to_blog_feed_url` in `blog.ts` ([79c58b8](https://github.com/fuzdev/fuz_blog/commit/79c58b8))
-  
+
   Migrate: delete `atom` from each blog's `feed` in `src/routes/blogs.ts`, and link feeds with `to_blog_feed_url(blog.feed.home_page_url)` where you read `blog.feed.atom.feed_url` (e.g. the root layout's alternate links). The generated `BlogFeed` still carries `atom.feed_url`.
-  
+
   `load_blogs_module` now validates the registry with the new `validate_blog_configs` (in `blog_config.ts`), so `gro gen` and the post tasks check it before touching any post file; gen fails with an error naming the blog or post when:
-  
+
   - a `dirname` is not route path segments - empty, `.` or `..` segments, a leading or trailing slash, or a `\`, `?`, `#`, `%`, space, or ASCII control character, or a route group or param segment like `(group)` or `[param]` - the dirname must equal the URL path
   - a blog's `home_page_url` pathname (trailing slash ignored) does not end with `/<dirname>`, after any deploy base path, or the url has a query or fragment - post and feed URLs derive from it
   - two blogs in the registry share a `dirname`
   - a blog's `feed` fails strict `BlogFeedMetadata` validation, including a leftover `atom`
-  
+
   `gro gen` also fails on a post whose `date_modified` is before its `date_published`.
-  
+
   `gro task src/lib/update_post.task.ts` refuses a `--date` before the post's `date_published` when the file has exactly one quoted `date_published` value.
+
 - feat: `BlogPost` is generic over its `post` (`T extends BlogPostMetadata`), and the `meta` and `comments` snippets receive `post: T`, so a consumer's extra post fields are typed in snippets - `T` is inferred from the `post` prop, so a post declared `{...} satisfies BlogPostMetadata` with a `model: 'x'` field gives snippets `post.model: string`, and a shared snippet can type its `post` param with the consumer's own type (e.g. `BlogPostMetadata & {model: string}`), checked against each post that passes it ([7dc4c1c](https://github.com/fuzdev/fuz_blog/commit/7dc4c1c))
-  
+
   Existing call sites and one-arg snippets are unchanged. One tightening: when `post` is declared with `satisfies`, an inline snippet reading a field the post doesn't declare is now a type error rather than `unknown`, and the component's instance type now takes a type argument.
+
 - feat: add `init.task.ts`, run in a consumer as `gro task node_modules/@fuzdev/fuz_blog/dist/init.task.js`, which wires fuz_blog into a SvelteKit project: it creates the missing `src/routes/blogs.ts`, `src/lib/blog.gen.ts`, `src/lib/post.task.ts`, `src/lib/update_post.task.ts`, `src/params.ts`, the blog's `+layout.svelte` and `+page.svelte`, and a root `+layout.svelte` linking the feeds, prints the code to add to existing files instead of editing them, then runs `gro gen`. Feed metadata defaults from `package.json` and is validated before anything is written. The pure planner is `plan_blog_init` in the new `blog_init.ts`, and `load_blogs_registry` is a lenient registry loader that allows an empty `blogs` array. ([e92f92b](https://github.com/fuzdev/fuz_blog/commit/e92f92b))
-  
+
   fix: the generated redirect route imports `../feed.ts` in consumers - gro's dist pass had rewritten the specifier in fuz_blog's published template to `../feed.js`
+
 - break: posts live at `src/routes/<dirname>/<id>-<slug>/+page.svelte` and the slug comes from the directory name; `gro gen` writes a `[post=blog_post_id]` route redirecting `/<dirname>/<id>` to the post, `slug` is gone from `BlogPostMetadata`, and `BlogConfig.slug_routes` is removed ([85c8a44](https://github.com/fuzdev/fuz_blog/commit/85c8a44))
-  
+
   Migrate each blog:
-  
+
   - rename every post directory from `<id>/` to `<id>-<slug>/`, e.g. `blog/1/` to `blog/1-hello-world/`
   - remove `slug` from each post's `post` metadata
   - delete the slug route directories older versions generated, e.g. `blog/hello-world/`
   - drop `slug_routes` from `src/routes/blogs.ts`
   - register the redirect route's param matcher in `src/params.ts` (add it to an existing `defineParams` call if there is one): `export const params = defineParams({blog_post_id: blog_post_id_param});` with `defineParams` from `@sveltejs/kit/params` and `blog_post_id_param` from `@fuzdev/fuz_blog/blog_post_id.ts`
   - run `gro gen`
-  
+
   Post URLs become `/<dirname>/<id>-<slug>`, and feed entry ids stay `<home_page_url>/<id>`, which redirect to the post.
   The old `/<dirname>/<slug>` URLs no longer resolve.
   A blog without posts gets no redirect route.
   `post.task.ts` takes `--slug`, and both tasks validate `--date` as a UTC ISO datetime.
-  
+
   `BlogPost` finds its feed item by matching the current route to the item's `pathname`, so rendering a post off its own route needs an explicit `item`. It also emits a `<link rel="canonical">` on the post's own route.
-  
+
   API: `collect_blog_post_ids` is replaced by `collect_blog_post_dirs`; `to_next_blog_post_id` moves to `blog_post_dir.ts` and takes `BlogPostDir`s; `to_blog_post_path` and `resolve_blog_feed_item` take a `BlogPostDir` in place of the id, and `resolve_blog_feed_item` drops its `slug_routes` option; `BlogPostScaffoldOptions` gains `blog_post_id`. New: `parse_blog_post_dirname`, `to_blog_post_dirname`, `resolve_blog_post_dirs`, `BLOG_POST_SLUG_PATTERN`, and `BlogPostDir` in `blog_post_dir.ts`; `blog_post_id.ts` with `BLOG_POST_ID_SOURCE`, `is_blog_post_id_param`, and `blog_post_id_param`; `blog_post_redirect.ts` with `find_blog_feed_item_by_param`, `to_blog_post_redirect_entries`, and `blog_post_redirect`; and `to_blog_post_slug`, `create_blog_gen_outputs`, `BlogGenInput`, `BlogGenOptions`, `BlogGenOutput`, `BLOG_POST_REDIRECT_ROUTE_DIRNAME`, and `to_blog_post_redirect_route_path` in `blog_helpers.ts`.
+
 - break: split `blog.ts` into focused modules, with no re-exports - update imports to the new paths: ([83c1efc](https://github.com/fuzdev/fuz_blog/commit/83c1efc))
-  
+
   - `blog.ts` → `blog_config.ts`: `BlogConfig`, `BlogPostScaffoldOptions`, `BlogsModule`, `resolve_blog_config`
   - `blog.ts` → `blog_post_id.ts`: `BlogPostId`
   - `blog.ts` → `blog_feed_context.ts`: `blog_feed_context`
-  
+
   The post directory helpers are in `blog_post_dir.ts`, the registry validation (`validate_blog_configs`) in `blog_config.ts`, and `resolve_blog_post_pathname` in `blog_post_pathname.ts`.
-  
+
   `BlogPostMetadata`, `BlogFeedItem`, `BlogFeedMetadata`, `BlogFeed`, `resolve_blog_feed_item`, and `to_blog_feed_url` stay in `blog.ts`, which no longer imports fuz_ui, so `blog.ts`, `blog_config.ts`, and the gen and task modules' own imports stay free of Svelte (gen still loads each post's `+page.svelte` to read its `post`). Generated `feed.ts` and redirect route files are unchanged. A blog's `src/routes/blogs.ts` imports `BlogConfig` from `blog_config.ts`, and a blog layout imports `blog_feed_context` from `blog_feed_context.ts`.
-  
+
   feat: `BlogPost`'s `meta` and `comments` snippets take `(item: BlogFeedItem, post: BlogPostMetadata)`, passing the `post` prop so a snippet shared across posts can render a consumer's extra metadata fields (existing one-argument snippets still work)
-  
+
   break: remove the `routes_path` option from `CreateBlogPostOptions`, `UpdateBlogPostOptions`, and `BlogGenOptions` - blogs are always at `src/routes/<dirname>`, now resolved by the new `to_blog_dir` in `blog_helpers.ts`
+
 - break: remove `HashLink.svelte` - use fuz_ui's `Hashlink.svelte` ([65c0370](https://github.com/fuzdev/fuz_blog/commit/65c0370))
-  
+
   break: `FeedItemDate`'s `item` prop is `Pick<FeedItem, 'date_published' | 'date_modified'>`, so it also takes `BlogPostMetadata`, and it shows "updated" only when the modified date formats to a different day than the published date (an edit on the publish day, or the same instant written differently, is not an update)
-  
+
   break: `gro task src/lib/update_post.task.ts` names the post by its id, its `<id>-<slug>` directory name, or its slug (failing when the slug matches more than one post); a bare id must be a positive integer without leading zeros, so `1e3`, `0x2`, `1.0`, and ` 1` no longer parse as ids. `UpdateBlogPostOptions` takes `query: string` in place of `blog_post_id`, and `UpdatedBlogPost` adds `slug`. The task logs the updated post. New `find_blog_post_dir` in `blog_post_dir.ts` resolves a query against a blog's posts.
-  
+
   break: `load_blog_post_modules` is renamed `load_blog_posts` and returns each post's unvalidated `post` export (`Array<unknown>`); `BlogPostModule` is removed
-  
+
   break: the blogs registry check (`validate_blog_configs`) also rejects a config that is not an object, a non-string `dirname`, a `scaffold` that is not a function, and any key besides `dirname`, `feed`, and `scaffold` (e.g. a leftover `slug_routes`); it takes the registry unvalidated (`Array<unknown>`) and asserts it is `Array<BlogConfig>`
-  
+
   fix: the `home_page_url` check compares percent escapes case-insensitively, so `https://example.com/caf%c3%a9` matches `dirname: 'café'`
-  
+
   fix: `BlogPostList` renders its empty message as a paragraph instead of text inside the `<ol>`
-  
+
   New exports: `find_blog_post_dir` (`blog_post_dir.ts`), `load_fuz_blog_import_path` and `load_blog_posts` (`blog_helpers.ts`), `resolve_blog_post_pathname` (`blog_post_pathname.ts`), and the `FeedUrl` type (`feed.ts`).
+
 - fix: `format_date` renders the UTC calendar date (via `Intl.DateTimeFormat`, same `Jul 10, 2024` format), so a post near midnight UTC no longer shows a different day depending on the build machine's timezone; `BlogPostList` orders posts newest first by `date_published` like the Atom feed instead of by reversed id, through the new `compare_feed_items` / `sort_feed_items`; Atom entries get a deterministic tie-break; the feed `<updated>` takes the latest of each item's `date_modified` and `date_published`; the template sets `blog_feed_context` in `src/routes/blog/+layout.svelte` instead of the root layout; drop the `date-fns` dependency ([a6ab2f8](https://github.com/fuzdev/fuz_blog/commit/a6ab2f8))
 
 ### Patch Changes
