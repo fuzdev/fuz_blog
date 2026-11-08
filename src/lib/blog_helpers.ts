@@ -1,4 +1,5 @@
 import { format_file } from '@fuzdev/gro/format_file.ts';
+import type { FsPaths } from '@fuzdev/gro/fs_paths.ts';
 import { package_json_load } from '@fuzdev/gro/package_json.ts';
 import { slugify } from '@fuzdev/fuz_util/path.ts';
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
@@ -89,8 +90,10 @@ export const load_blogs_registry = async (dir: string): Promise<Array<BlogConfig
  * Loads the import specifier for fuz_blog modules in the project at `dir` -
  * `#lib` inside fuz_blog itself, `@fuzdev/fuz_blog` in consumers.
  */
-export const load_fuz_blog_import_path = async (dir: string): Promise<string> =>
-	(await package_json_load(dir)).name === '@fuzdev/fuz_blog' ? '#lib' : '@fuzdev/fuz_blog';
+export const load_fuz_blog_import_path = async (fs_paths: FsPaths, dir: string): Promise<string> =>
+	(await package_json_load(fs_paths, dir)).name === '@fuzdev/fuz_blog'
+		? '#lib'
+		: '@fuzdev/fuz_blog';
 
 /**
  * The default post scaffold for `gro task src/lib/post.task.ts`.

@@ -1,4 +1,6 @@
 import { TaskError, type Task } from '@fuzdev/gro';
+import { fs } from '@fuzdev/gro/fs.ts';
+import { create_fs_paths } from '@fuzdev/gro/fs_paths.ts';
 import * as s from '@fuzdev/fuz_schema/schema.ts';
 import { to_error_message } from '@fuzdev/fuz_util/error.ts';
 import { meta } from '@fuzdev/fuz_schema/meta.ts';
@@ -56,7 +58,7 @@ export const task: Task<Args> = {
 		const { blogs } = await load_blogs_module(dir);
 		const config = resolve_blog_config(blogs, blog_dirname);
 
-		const fuz_blog_import_path = await load_fuz_blog_import_path(dir);
+		const fuz_blog_import_path = await load_fuz_blog_import_path(create_fs_paths(fs), dir);
 
 		// invalid slugs and post directories are user errors, so report them without a stack
 		const { blog_post_id, path, slug } = await create_blog_post({

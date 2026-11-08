@@ -1,4 +1,6 @@
 import { TaskError, type Task } from '@fuzdev/gro';
+import { fs } from '@fuzdev/gro/fs.ts';
+import { create_fs_paths } from '@fuzdev/gro/fs_paths.ts';
 import { package_json_load } from '@fuzdev/gro/package_json.ts';
 import * as s from '@fuzdev/fuz_schema/schema.ts';
 import { meta } from '@fuzdev/fuz_schema/meta.ts';
@@ -51,7 +53,7 @@ export const task: Task<Args> = {
 	run: async ({ args, log, invoke_task, svelte_config }) => {
 		const dir = process.cwd();
 
-		const package_json = await package_json_load(dir);
+		const package_json = await package_json_load(create_fs_paths(fs), dir);
 
 		// kit resolves `files` to absolute paths, and defaults `files.params` to `<files.src>/params`
 		const { routes_path, src_path, svelte_config: config } = await svelte_config;
