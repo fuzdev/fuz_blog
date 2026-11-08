@@ -1,5 +1,20 @@
 # @fuzdev/fuz_blog
 
+## 0.40.0
+
+### Minor Changes
+
+- Update dependencies (BREAKING CHANGES) ([a8d5c0f](https://github.com/fuzdev/fuz_blog/commit/a8d5c0f))
+  
+  Breaking dependency changes:
+  - @fuzdev/fuz_util: 0.79.0 → 0.80.0 (minor)
+  - @fuzdev/fuz_css: 0.78.0 → 0.79.0 (minor)
+  - @fuzdev/gro: 0.223.0 → 0.226.0 (minor)
+  - @fuzdev/fuz_ui: 0.224.0 → 0.226.0 (minor)
+- break: upgrade to fuz_css 0.78 - the `@fuzdev/fuz_css` peer is `>=0.78.0` ([544136a](https://github.com/fuzdev/fuz_blog/commit/544136a))
+  
+  fuz_css 0.77 and 0.78 hold raised surfaces like `shade_10` nearer the ground, derive the default control border by mixing `shade_30` toward `shade_50` (a quarter of the way at no contrast, all the way at high contrast), and move the neutral `.selected` fill to `shade_70`. None of the fuz_css APIs fuz_blog imports changed, but its components render on the new surfaces, borders, and selected fill.
+
 ## 0.39.0
 
 ### Minor Changes
