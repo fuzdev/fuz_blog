@@ -1,0 +1,9 @@
+---
+"@fuzdev/fuz_blog": minor
+---
+
+Update dependencies (BREAKING CHANGES)
+
+Breaking dependency changes:
+- @fuzdev/fuz_util: 0.80.0 → 0.81.0 (minor)
+- @fuzdev/gro: 0.227.0 → 0.229.0 (minor)
