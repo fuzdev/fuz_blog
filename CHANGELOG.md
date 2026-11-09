@@ -1,5 +1,18 @@
 # @fuzdev/fuz_blog
 
+## 0.41.0
+
+### Minor Changes
+
+- Update dependencies (BREAKING CHANGES) ([fc82c51](https://github.com/fuzdev/fuz_blog/commit/fc82c51))
+  
+  Breaking dependency changes:
+  - @fuzdev/fuz_util: 0.80.0 → 0.81.0 (minor)
+  - @fuzdev/gro: 0.227.0 → 0.229.0 (minor)
+  - @fuzdev/fuz_css: 0.79.0 → 0.81.0 (minor)
+  - @fuzdev/fuz_ui: 0.226.0 → 0.227.0 (minor)
+- break: upgrade to gro 0.227 - the `@fuzdev/gro` peer is `>=0.227.0`, and `load_fuz_blog_import_path` takes `FsPaths` as its first argument ([ac68d44](https://github.com/fuzdev/fuz_blog/commit/ac68d44))
+
 ## 0.40.0
 
 ### Minor Changes
