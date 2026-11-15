@@ -39,13 +39,13 @@ export type Args = s.Infer<typeof Args>;
 export const task: Task<Args> = {
 	summary: 'create a new blog post',
 	Args,
-	run: async ({ args, log, invoke_task }) => {
+	run: async ({ task_args, log, invoke_task }) => {
 		const {
 			_: [raw_title],
 			blog: blog_dirname,
 			slug: raw_slug,
 			date = new Date().toISOString()
-		} = args;
+		} = task_args;
 
 		if (!raw_title) {
 			throw new TaskError(

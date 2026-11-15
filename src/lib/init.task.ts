@@ -50,7 +50,7 @@ export type Args = s.Infer<typeof Args>;
 export const task: Task<Args> = {
 	summary: 'wire fuz_blog into a SvelteKit project, creating only missing files',
 	Args,
-	run: async ({ args, log, invoke_task, svelte_config }) => {
+	run: async ({ task_args, log, invoke_task, svelte_config }) => {
 		const dir = process.cwd();
 
 		const package_json = await package_json_load(create_fs_paths(fs), dir);
@@ -68,13 +68,13 @@ export const task: Task<Args> = {
 
 		const plan = await load_blog_init_state({
 			dir,
-			dirname: args.dirname,
+			dirname: task_args.dirname,
 			package_json,
 			routes_path,
 			params_path,
 			module_extensions: config?.moduleExtensions
 		})
-			.then((state) => plan_blog_init(args, state))
+			.then((state) => plan_blog_init(task_args, state))
 			.catch((err: unknown) => {
 				throw new TaskError(to_error_message(err));
 			});

@@ -35,12 +35,12 @@ export type Args = s.Infer<typeof Args>;
 export const task: Task<Args> = {
 	summary: 'updates the `date_modified` of a blog post',
 	Args,
-	run: async ({ args, log, invoke_task }) => {
+	run: async ({ task_args, log, invoke_task }) => {
 		const {
 			_: [query],
 			blog: blog_dirname,
 			date = new Date().toISOString()
-		} = args;
+		} = task_args;
 
 		if (!query) {
 			throw new TaskError(
