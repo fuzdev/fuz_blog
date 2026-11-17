@@ -1,1 +1,0 @@
-import{t as e}from"./dp8uFaED.js";import"./BgYIwgDI.js";var t=t=>e(t.slice(1));export{t};
