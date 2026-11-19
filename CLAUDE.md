@@ -26,10 +26,10 @@ Both tasks support additional flags:
 
 ```bash
 gro task src/lib/post.task.ts "Title" --date 2024-07-10T16:04:49.688Z  # custom date
-gro task src/lib/post.task.ts "Title" --blog autoblog                  # target a specific registered blog
+gro task src/lib/post.task.ts "Title" --blog devlog                    # target a specific registered blog
 gro task src/lib/post.task.ts "Title" --slug custom-slug               # override the slug derived from the title
 gro task src/lib/update_post.task.ts 1 --date 2024-07-10T16:04:49.688Z # update specific post
-gro task src/lib/update_post.task.ts 1 --blog autoblog                 # update in a specific blog
+gro task src/lib/update_post.task.ts 1 --blog devlog                   # update in a specific blog
 gro task src/lib/update_post.task.ts 1-hello-fuz-blog                  # by directory name
 gro task src/lib/update_post.task.ts hello-fuz-blog                    # by slug, if unique
 ```

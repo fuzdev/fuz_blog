@@ -19,7 +19,7 @@
 		/**
 		 * The author-defined metadata the post exports from its `<script module>`,
 		 * including any fields a consumer adds beyond `BlogPostMetadata`,
-		 * like an autoblog's `model`. Sets the page title. Its type is the
+		 * like a devlog's `series`. Sets the page title. Its type is the
 		 * component's `T`, inferred from the value passed, so `meta` and `comments`
 		 * receive the extra fields typed.
 		 */

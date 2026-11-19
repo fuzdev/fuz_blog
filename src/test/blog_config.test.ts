@@ -4,18 +4,18 @@ import { resolve_blog_config, validate_blog_configs, type BlogConfig } from '#li
 import { create_blog_config, create_blog_feed_metadata } from './blog_test_helpers.ts';
 
 describe('resolve_blog_config', () => {
-	const blogs: Array<BlogConfig> = [create_blog_config('blog'), create_blog_config('autoblog')];
+	const blogs: Array<BlogConfig> = [create_blog_config('blog'), create_blog_config('devlog')];
 
 	test('defaults to the first blog when no dirname is given', () => {
 		assert.equal(resolve_blog_config(blogs, undefined).dirname, 'blog');
 	});
 
 	test('finds a blog by dirname', () => {
-		assert.equal(resolve_blog_config(blogs, 'autoblog').dirname, 'autoblog');
+		assert.equal(resolve_blog_config(blogs, 'devlog').dirname, 'devlog');
 	});
 
 	test('throws listing the known dirnames for an unknown blog', () => {
-		assert.throws(() => resolve_blog_config(blogs, 'nope'), /expected one of: blog, autoblog/);
+		assert.throws(() => resolve_blog_config(blogs, 'nope'), /expected one of: blog, devlog/);
 	});
 });
 
@@ -30,7 +30,7 @@ describe('validate_blog_configs', () => {
 		assert.doesNotThrow(() =>
 			validate_blog_configs([
 				{ ...config, scaffold: () => '' },
-				with_home_page_url('https://example.com/autoblog/', 'autoblog')
+				with_home_page_url('https://example.com/devlog/', 'devlog')
 			])
 		);
 	});

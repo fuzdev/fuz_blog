@@ -50,7 +50,7 @@ const blog_post_metadata_shape = {
 
 /**
  * The author-defined metadata for each post. Loose so a consumer can add its own
- * fields (e.g. an autoblog's `model`); the extras stay on the page's `post` and
+ * fields (e.g. a devlog's `series`); the extras stay on the page's `post` and
  * do not reach the generated `BlogFeed` (see `resolve_blog_feed_item`).
  * The slug is not metadata - it comes from the post's `<id>-<slug>` directory
  * name (see `parse_blog_post_dirname`).
