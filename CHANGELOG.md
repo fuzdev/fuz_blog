@@ -1,5 +1,24 @@
 # @fuzdev/fuz_blog
 
+## 0.42.0
+
+### Minor Changes
+
+- Update dependencies (BREAKING CHANGES) ([fcad318](https://github.com/fuzdev/fuz_blog/commit/fcad318))
+  
+  Breaking dependency changes:
+  - @fuzdev/fuz_util: 0.81.0 → 0.83.0 (minor)
+  - @fuzdev/fuz_css: 0.81.0 → 0.83.0 (minor)
+  - @fuzdev/gro: 0.237.0 → 0.238.0 (minor)
+  - @fuzdev/fuz_ui: 0.227.0 → 0.230.0 (minor)
+- **breaking** deps: peer `@fuzdev/gro` `>=0.237.0`, whose tasks read `task_args` ([af655fa](https://github.com/fuzdev/fuz_blog/commit/af655fa))
+
+### Patch Changes
+
+- fix: declaration maps resolve to the shipped source, so go-to-definition lands in `src/lib` ([4f76a23](https://github.com/fuzdev/fuz_blog/commit/4f76a23))
+- deps: peer '@fuzdev/fuz_schema' `>=0.5.7`, admitting 0.6: the floor is the version whose named schema types (`ObjectSchema`, `StringSchema`, …) this package's declarations print when built against it, and 0.6.0's type changes compile here unchanged ([bea6337](https://github.com/fuzdev/fuz_blog/commit/bea6337))
+- fix: `blog.gen.ts` and the `init` and `post` tasks pass `create_fs_paths` the working directory and `$HOME`, as gro 0.238 requires ([ebb35db](https://github.com/fuzdev/fuz_blog/commit/ebb35db))
+
 ## 0.41.0
 
 ### Minor Changes
