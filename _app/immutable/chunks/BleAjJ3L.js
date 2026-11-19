@@ -1,1 +1,0 @@
-import{t as e}from"./Bpe-5yd4.js";import"./DsmJOyj2.js";var t=t=>e(t.slice(1));export{t};
