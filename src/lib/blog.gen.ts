@@ -1,6 +1,8 @@
 import type { Gen } from '@fuzdev/gro/gen.ts';
 import { fs } from '@fuzdev/gro/fs.ts';
 import { create_fs_paths } from '@fuzdev/gro/fs_paths.ts';
+import { cwd } from '@fuzdev/gro/cwd.ts';
+import { env } from '@fuzdev/gro/env.ts';
 import { existsSync } from 'node:fs';
 
 import {
@@ -23,7 +25,10 @@ import {
  */
 export const gen: Gen = async ({ origin_path }) => {
 	const dir = process.cwd();
-	const fuz_blog_import_path = await load_fuz_blog_import_path(create_fs_paths(fs), dir);
+	const fuz_blog_import_path = await load_fuz_blog_import_path(
+		create_fs_paths(fs, { cwd: cwd(), home: env.get('HOME') }),
+		dir
+	);
 
 	const { blogs } = await load_blogs_module(dir);
 
