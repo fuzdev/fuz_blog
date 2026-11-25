@@ -10,7 +10,7 @@ For coding conventions, see Skill(fuz-stack).
 ## Gro commands
 
 ```bash
-gro check        # typecheck, test, lint, format check (run before committing)
+gro check        # typecheck, test, format check (run before committing)
 gro typecheck    # typecheck only
 gro test         # run tests with vitest
 gro gen          # regenerate .gen files (feed.xml, feed.ts, redirect route)
